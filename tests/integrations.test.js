@@ -9,6 +9,8 @@ test('auth config requires a matching Firebase Auth domain',()=>{
   const config={VITE_FIREBASE_API_KEY:'public-browser-config',VITE_FIREBASE_PROJECT_ID:'ai-virtual-office-96157',VITE_FIREBASE_AUTH_DOMAIN:'ai-virtual-office-96157.firebaseapp.com',VITE_FIREBASE_APP_ID:'app-id'};
   assert.equal(firebaseAuthConfig(config).projectId,'ai-virtual-office-96157');
   assert.equal(firebaseAuthConfig({...config,VITE_FIREBASE_AUTH_DOMAIN:'attacker.example'}),null);
+  assert.equal(firebaseAuthConfig({...config,VITE_FIREBASE_PROJECT_ID:'landright-admin',VITE_FIREBASE_AUTH_DOMAIN:'landright-admin.firebaseapp.com'}),null);
+  assert.equal(firebaseAuthConfig({...config,VITE_FIREBASE_PROJECT_ID:'land-reg-qa',VITE_FIREBASE_AUTH_DOMAIN:'land-reg-qa.firebaseapp.com'}),null);
 });
 test('provider adapters cannot issue requests or expose secrets',()=>{
   assert.deepEqual(PROVIDER_IDS,['openai','gemini','claude']);
