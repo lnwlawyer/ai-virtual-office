@@ -1,6 +1,7 @@
-import {initializeApp,getApps,getApp} from 'firebase/app';
+import {initializeApp,getApps} from 'firebase/app';
 import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from 'firebase/auth';
 import {firebaseAuthConfig} from './integrations.js';
+import {toSessionSnapshot} from './session-snapshot.js';
 
 // No login starts unless this app's browser config is explicitly provided.
 export function createGoogleAuthClient(env) {
@@ -12,7 +13,7 @@ export function createGoogleAuthClient(env) {
   const provider=new GoogleAuthProvider();
   provider.setCustomParameters({prompt:'select_account'});
   return {
-    subscribe(callback) {return onAuthStateChanged(auth,user=>callback(user ? {uid:user.uid,email:user.email,emailVerified:user.emailVerified,projectId:config.projectId}:null));},
+    subscribe(callback) {return onAuthStateChanged(auth,user=>callback(toSessionSnapshot(user,config.projectId)));},
     signIn() {return signInWithPopup(auth,provider);},
     signOut() {return signOut(auth);}
   };
