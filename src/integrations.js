@@ -1,4 +1,5 @@
 // Safe browser-side integration boundary. No provider secrets or paid requests belong here.
+export const EXPECTED_FIREBASE_PROJECT_ID='ai-virtual-office-96157';
 export const PROVIDER_IDS=Object.freeze(['openai','gemini','claude']);
 export const AUTH_STATES=Object.freeze(['not-configured','signed-out','signed-in']);
 export function firebaseAuthConfig(env={}) {
@@ -6,7 +7,7 @@ export function firebaseAuthConfig(env={}) {
   if(!fields.every(key=>typeof env[key]==='string' && env[key].trim())) return null;
   const projectId=env.VITE_FIREBASE_PROJECT_ID;
   const authDomain=env.VITE_FIREBASE_AUTH_DOMAIN;
-  if(!/^[a-z][a-z0-9-]{4,62}$/.test(projectId) || authDomain!==projectId+'.firebaseapp.com') return null;
+  if(projectId!==EXPECTED_FIREBASE_PROJECT_ID || authDomain!==projectId+'.firebaseapp.com') return null;
   return {apiKey:env.VITE_FIREBASE_API_KEY,authDomain,projectId,appId:env.VITE_FIREBASE_APP_ID};
 }
 export function providerStatus(env={}) {
