@@ -1,0 +1,1 @@
+import{canCallProvider}from"../config/providers.js";export async function sendPrompt(providerId,_prompt){if(!canCallProvider(providerId))throw new Error("AI provider disabled: secure server adapter not configured");throw new Error("No client-side AI calls allowed")}

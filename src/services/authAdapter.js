@@ -1,0 +1,1 @@
+export const authStatus=Object.freeze({configured:false,mode:"preview",signedIn:false});export async function requireAuthenticatedUser(){throw new Error("Authentication backend not configured; protected actions disabled")}

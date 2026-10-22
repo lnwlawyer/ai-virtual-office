@@ -1,0 +1,1 @@
+export const providers=Object.freeze([{id:"openai",label:"ChatGPT / OpenAI",enabled:false},{id:"gemini",label:"Gemini / Google",enabled:false},{id:"claude",label:"Claude / Anthropic",enabled:false}]);export function canCallProvider(id){return providers.some(p=>p.id===id&&p.enabled)}
