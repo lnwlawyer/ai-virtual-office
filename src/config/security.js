@@ -1,0 +1,1 @@
+export const securityPolicy=Object.freeze({authenticationRequired:true,providerCallsEnabled:false,allowBrowserApiKeys:false,monthlyBudgetTHB:500,productionActionsRequireApproval:true});export function assertProviderCallsDisabled(){if(securityPolicy.providerCallsEnabled)throw new Error("Provider calls require authenticated backend and billing approval");return true}
