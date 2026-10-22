@@ -16,3 +16,9 @@ Budget target: THB 500/month. No billing is configured.
 4. After an authorized deployment, verify Google login, logout, unverified-account handling, and project isolation manually. CI tests validate only the session-policy contract, not a real Google login.
 
 The frontend login state is informational. Admin actions, document writes, and AI requests must remain disabled until an authenticated backend validates Firebase ID tokens and enforces authorization. No Firestore access, production writes, paid AI gateway, or billing is configured.
+
+## GitHub Pages preview (manual release gate)
+
+The `GitHub Pages Preview (manual)` workflow can be started from GitHub Actions only after reviewing the changes. It runs tests and builds before publishing `dist`. GitHub Pages must be configured to use **GitHub Actions** as the deployment source. The preview uses Vite base `/ai-virtual-office/`.
+
+The workflow intentionally supplies **no** Firebase environment variables or AI keys. Consequently Google sign-in remains disabled in this public preview, and no backend or paid AI service is contacted. To test real Google login later, first review the public Firebase browser configuration, authorize the Pages domain in Firebase Authentication, and approve a separate deployment change. Do not place provider API keys or Admin SDK credentials in Actions variables prefixed with `VITE_`.
