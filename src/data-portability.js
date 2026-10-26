@@ -19,3 +19,14 @@ export function exportPortableBackup(tasks,outputs,knowledge) {
   const checked=validatePortableBackup(content);
   return checked.ok?{ok:true,content,summary:checked.summary}:checked;
 }
+
+export function restorePortableBackup(raw,confirm=false) {
+  const validation=validatePortableBackup(raw);
+  if(!validation.ok)return validation;
+  if(confirm!==true)return {ok:false,error:'Explicit confirmation required'};
+  const parsed=JSON.parse(raw);
+  const tasks=parsed.tasks.map(({title,priority,status})=>({title,priority,status}));
+  const outputs=parsed.outputs.map(({title,content,type})=>({title,content,type}));
+  const knowledge=parsed.knowledge.map(({title,body,category,keywords})=>({title,body,category,keywords}));
+  return {ok:true,tasks,outputs,knowledge,summary:validation.summary,storage:'memory-only'};
+}
