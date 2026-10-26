@@ -71,3 +71,8 @@
 @keyframes office-gait-arm{from{transform:rotate(-24deg)}to{transform:rotate(26deg)}}
 @keyframes office-gait-leg{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
 @media(prefers-reduced-motion:reduce){.office-walker-arm,.office-walker-feet i{animation:none!important}}
+
+.office-station .office-hair,.office-lane-walker .office-walker-head{border-color:var(--avatar-hair,#384b5a)}
+.office-station .office-hair{background:var(--avatar-hair,#384b5a)}
+.office-station .office-face{background:var(--avatar-skin,#efbb91)}
+.office-lane-walker .office-walker-head{background:var(--avatar-skin,#efbb91);border-top-color:var(--avatar-hair,#384b5a)}

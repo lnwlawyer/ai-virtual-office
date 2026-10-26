@@ -1,3 +1,4 @@
+import {AVATAR_STYLES,avatarStyle,setAvatarStyle} from './office-avatar-styles.js';
 import {walkingStaff,walkingLaneDuration,walkingLaneDelay} from './office-walking-lane.js';
 import {MOTION_SPEEDS,validMotionSpeed,motionDuration} from './office-motion.js';
 import {TEAM_PRESETS,applyTeamStatus,teamStatusSummary} from './office-team.js';
@@ -21,6 +22,7 @@ export default function VirtualOfficeRoom(){
  const [confirmImport,setConfirmImport]=useState(false);
  const [moving,setMoving]=useState(true);
  const [motionSpeed,setMotionSpeed]=useState('normal');
+ const [avatarStyles,setAvatarStyles]=useState({});
  const [selected,setSelected]=useState(STAFF[0].id);
  const [layout,setLayout]=useState(initialOfficeLayout);
  const imageUrl=useRef('');
@@ -75,7 +77,7 @@ export default function VirtualOfficeRoom(){
    {decor.includes('lamp')&&<div className="office-decor-lamp" aria-hidden="true">💡</div>}
    <div className="office-floor" aria-hidden="true"/>
    <div className="office-desks">
-    {layout.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" className={'office-station office-state-'+entry.status+(selected===staff.id?' is-selected':'')} key={staff.id} onClick={()=>setSelected(staff.id)} aria-pressed={selected===staff.id} style={{'--staff-accent':staff.accent,'--walk-delay':(i%4)*-1.4+'s'}}>
+    {layout.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" className={'office-station office-state-'+entry.status+(selected===staff.id?' is-selected':'')} key={staff.id} onClick={()=>setSelected(staff.id)} aria-pressed={selected===staff.id} style={{'--staff-accent':staff.accent,'--avatar-hair':avatarStyle(avatarStyles[staff.id]).hair,'--avatar-skin':avatarStyle(avatarStyles[staff.id]).skin,'--walk-delay':(i%4)*-1.4+'s'}}>
       <span className="office-character" aria-hidden="true"><span className="office-hair"/><span className="office-face"><i/><i/></span><span className="office-torso"/><span className="office-arm office-arm-left"/><span className="office-arm office-arm-right"/><span className="office-leg office-leg-left"/><span className="office-leg office-leg-right"/></span>
       <span className="office-desk" aria-hidden="true"><span className="office-monitor"/><span className="office-desk-top"/><span className="office-desk-legs"/></span>
       <span className="office-name">{entry.name}</span>
@@ -84,17 +86,18 @@ export default function VirtualOfficeRoom(){
    </div>
    <div className="office-walking-lane" aria-label={`ทางเดินสำนักงาน มีพนักงานกำลังเดิน ${walkers.length} คน`}>
     <span className="office-lane-sign" aria-hidden="true">ทางเดินสำนักงาน</span>
-    {walkers.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" key={entry.id} className="office-lane-walker" style={{'--staff-accent':staff.accent,'--lane-delay':walkingLaneDelay(i),'--lane-duration':walkingLaneDuration(motionSpeed)}} onClick={()=>setSelected(entry.id)} aria-label={`เลือก ${entry.name} ที่กำลังเดิน`} title={entry.name}><span className="office-walker-head" aria-hidden="true"/><span className="office-walker-body" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-left" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-right" aria-hidden="true"/><span className="office-walker-feet" aria-hidden="true"><i/><i/></span></button>})}
+    {walkers.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" key={entry.id} className="office-lane-walker" style={{'--staff-accent':staff.accent,'--avatar-hair':avatarStyle(avatarStyles[staff.id]).hair,'--avatar-skin':avatarStyle(avatarStyles[staff.id]).skin,'--lane-delay':walkingLaneDelay(i),'--lane-duration':walkingLaneDuration(motionSpeed)}} onClick={()=>setSelected(entry.id)} aria-label={`เลือก ${entry.name} ที่กำลังเดิน`} title={entry.name}><span className="office-walker-head" aria-hidden="true"/><span className="office-walker-body" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-left" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-right" aria-hidden="true"/><span className="office-walker-feet" aria-hidden="true"><i/><i/></span></button>})}
    </div>
   </div>
   <div className="office-details" aria-live="polite">
    <div><h3>{active.name}</h3><p>{person.role}</p><p className="muted">ปรับชื่อและตำแหน่งในห้องได้เฉพาะแท็บนี้ ตัวละครยังไม่ใช่ AI ที่ทำงานจริง</p></div>
    <div className="office-editor">
     <label>ชื่อที่แสดง <input aria-label="ชื่อพนักงาน" maxLength={40} value={active.name} onChange={e=>setName(e.target.value)} /></label>
+    <label>ลักษณะตัวละคร <select aria-label="รูปแบบตัวการ์ตูนพนักงาน" value={avatarStyles[selected]??'classic'} onChange={e=>{const r=setAvatarStyle(avatarStyles,selected,e.target.value,STAFF);if(r.ok)setAvatarStyles(r.styles)}}>{AVATAR_STYLES.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
     <label>ท่าทาง <select aria-label="สถานะพนักงาน" value={active.status} onChange={e=>setStatus(e.target.value)}><option value="working">นั่งทำงาน</option><option value="walking">เดินไปมา</option><option value="resting">พักงาน</option></select></label>
-    <div className="office-reorder"><button type="button" onClick={()=>moveDesk(-1)} disabled={layout[0]?.id===selected}>ย้ายโต๊ะไปก่อนหน้า</button><button type="button" onClick={()=>moveDesk(1)} disabled={layout[layout.length-1]?.id===selected}>ย้ายโต๊ะไปถัดไป</button><button type="button" onClick={()=>{setLayout(resetOfficeLayout());setSelected(STAFF[0].id);setError('');}}>คืนค่าพนักงาน</button></div>
+    <div className="office-reorder"><button type="button" onClick={()=>moveDesk(-1)} disabled={layout[0]?.id===selected}>ย้ายโต๊ะไปก่อนหน้า</button><button type="button" onClick={()=>moveDesk(1)} disabled={layout[layout.length-1]?.id===selected}>ย้ายโต๊ะไปถัดไป</button><button type="button" onClick={()=>{setLayout(resetOfficeLayout());setAvatarStyles({});setSelected(STAFF[0].id);setError('');}}>คืนค่าพนักงาน</button></div>
    </div>
   </div>
-  <p className="office-footnote">ชื่อพนักงาน ลำดับโต๊ะ ท่าทาง และธีมสามารถบันทึกในเบราว์เซอร์ได้ด้วยตนเอง ของตกแต่งสามารถบันทึกในเบราว์เซอร์ได้เช่นกัน ภาพพื้นหลังที่อัปโหลดจะไม่ถูกบันทึกหรือส่งขึ้นเซิร์ฟเวอร์</p>
+  <p className="office-footnote">ชื่อพนักงาน ลำดับโต๊ะ ท่าทาง และธีมสามารถบันทึกในเบราว์เซอร์ได้ด้วยตนเอง ของตกแต่งสามารถบันทึกในเบราว์เซอร์ได้เช่นกัน สีผมและโทนตัวละครเป็นการตั้งค่าเฉพาะแท็บนี้ ภาพพื้นหลังที่อัปโหลดจะไม่ถูกบันทึกหรือส่งขึ้นเซิร์ฟเวอร์</p>
  </section>
 }
