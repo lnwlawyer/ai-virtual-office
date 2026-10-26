@@ -44,8 +44,8 @@ export default function VirtualOfficeRoom(){
    <button type="button" onClick={clearBackground} disabled={!background}>ใช้ฉากเริ่มต้น</button>
    <button type="button" aria-pressed={moving} onClick={()=>setMoving(v=>!v)}>{moving?'หยุดการเคลื่อนไหว':'เปิดการเคลื่อนไหว'}</button>
    <button type="button" aria-expanded={decorOpen} onClick={()=>setDecorOpen(v=>!v)}>{decorOpen?'ซ่อนตัวเลือกตกแต่ง':'ตกแต่งห้อง'}</button>
-   <button type="button" onClick={()=>{const r=saveRoomSnapshot(window.localStorage,theme,moving,layout);setSaveStatus(r.ok?'บันทึกการจัดห้องในเบราว์เซอร์แล้ว':r.error);}}>บันทึกการจัดห้อง</button>
-   <button type="button" onClick={()=>{const r=readRoomSnapshot(window.localStorage);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);setLayout(r.value.layout);setSelected(r.value.layout[0].id);setSaveStatus('เรียกคืนการจัดห้องสำเร็จ');}}>เรียกคืนการจัดห้อง</button>
+   <button type="button" onClick={()=>{const r=saveRoomSnapshot(window.localStorage,theme,moving,layout,decor);setSaveStatus(r.ok?'บันทึกการจัดห้องในเบราว์เซอร์แล้ว':r.error);}}>บันทึกการจัดห้อง</button>
+   <button type="button" onClick={()=>{const r=readRoomSnapshot(window.localStorage);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);setLayout(r.value.layout);setDecor(r.value.decor);setSelected(r.value.layout[0].id);setSaveStatus('เรียกคืนการจัดห้องสำเร็จ');}}>เรียกคืนการจัดห้อง</button>
    <button type="button" onClick={()=>{const r=removeRoomSnapshot(window.localStorage);setSaveStatus(r.ok?'ลบการจัดห้องที่บันทึกไว้แล้ว':r.error);}}>ลบข้อมูลที่บันทึก</button>
   </div>
   {decorOpen&&<fieldset className="office-decor-controls"><legend>เลือกของตกแต่งในห้อง</legend>{Object.entries(ROOM_DECOR).map(([id,item])=><label key={id}><input type="checkbox" checked={decor.includes(id)} onChange={()=>{const r=toggleDecor(decor,id);if(r.ok)setDecor(r.decor)}}/>{item.symbol} {item.label}</label>)}</fieldset>}
@@ -77,6 +77,6 @@ export default function VirtualOfficeRoom(){
     <div className="office-reorder"><button type="button" onClick={()=>moveDesk(-1)} disabled={layout[0]?.id===selected}>ย้ายโต๊ะไปก่อนหน้า</button><button type="button" onClick={()=>moveDesk(1)} disabled={layout[layout.length-1]?.id===selected}>ย้ายโต๊ะไปถัดไป</button><button type="button" onClick={()=>{setLayout(resetOfficeLayout());setSelected(STAFF[0].id);setError('');}}>คืนค่าพนักงาน</button></div>
    </div>
   </div>
-  <p className="office-footnote">ชื่อพนักงาน ลำดับโต๊ะ ท่าทาง และธีมสามารถบันทึกในเบราว์เซอร์ได้ด้วยตนเอง ของตกแต่งเป็นการตั้งค่าเฉพาะแท็บนี้ ภาพพื้นหลังที่อัปโหลดจะไม่ถูกบันทึกหรือส่งขึ้นเซิร์ฟเวอร์</p>
+  <p className="office-footnote">ชื่อพนักงาน ลำดับโต๊ะ ท่าทาง และธีมสามารถบันทึกในเบราว์เซอร์ได้ด้วยตนเอง ของตกแต่งสามารถบันทึกในเบราว์เซอร์ได้เช่นกัน ภาพพื้นหลังที่อัปโหลดจะไม่ถูกบันทึกหรือส่งขึ้นเซิร์ฟเวอร์</p>
  </section>
 }
