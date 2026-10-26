@@ -1,3 +1,4 @@
+import {validMotionSpeed} from './office-motion.js';
 import {validAvatarStyle} from './office-avatar-styles.js';
 import {DEFAULT_DECOR,validDecor} from './office-decor.js';
 import {STAFF,validRoomTheme} from './virtual-office-model.js';
@@ -12,17 +13,19 @@ export function validateRoomSnapshot(value){
  }
  const decor=value.decor===undefined?[...DEFAULT_DECOR]:value.decor;
  if(!validDecor(decor))return {ok:false,error:'ข้อมูลของตกแต่งไม่ถูกต้อง'};
+ const motionSpeed=value.motionSpeed===undefined?'normal':value.motionSpeed;
+ if(!validMotionSpeed(motionSpeed))return {ok:false,error:'ความเร็วการเคลื่อนไหวไม่ถูกต้อง'};
  const avatars=value.avatars===undefined?{}:value.avatars;
  if(!avatars||typeof avatars!=='object'||Array.isArray(avatars)||Object.keys(avatars).some(id=>!ids.has(id)||!validAvatarStyle(avatars[id])))return {ok:false,error:'ข้อมูลลักษณะตัวละครไม่ถูกต้อง'};
- return {ok:true,value:{version:1,theme:value.theme,moving:value.moving,layout:value.layout.map(({id,name,status})=>({id,name,status})),decor:[...decor],avatars:{...avatars}}};
+ return {ok:true,value:{version:1,theme:value.theme,moving:value.moving,layout:value.layout.map(({id,name,status})=>({id,name,status})),decor:[...decor],avatars:{...avatars},motionSpeed}};
 }
-export function createRoomSnapshot(theme,moving,layout,decor=DEFAULT_DECOR,avatars={}){return validateRoomSnapshot({version:1,theme,moving,layout,decor,avatars});}
+export function createRoomSnapshot(theme,moving,layout,decor=DEFAULT_DECOR,avatars={},motionSpeed='normal'){return validateRoomSnapshot({version:1,theme,moving,layout,decor,avatars,motionSpeed});}
 export function readRoomSnapshot(storage){
  try{const raw=storage?.getItem(OFFICE_STORAGE_KEY);if(!raw)return {ok:false,error:'ยังไม่มีข้อมูลห้องที่บันทึกไว้'};if(raw.length>12000)return {ok:false,error:'ข้อมูลห้องใหญ่เกินกำหนด'};return validateRoomSnapshot(JSON.parse(raw));}
  catch{return {ok:false,error:'ไม่สามารถอ่านข้อมูลห้องได้'};}
 }
-export function saveRoomSnapshot(storage,theme,moving,layout,decor=DEFAULT_DECOR,avatars={}){
- const result=createRoomSnapshot(theme,moving,layout,decor,avatars);
+export function saveRoomSnapshot(storage,theme,moving,layout,decor=DEFAULT_DECOR,avatars={},motionSpeed='normal'){
+ const result=createRoomSnapshot(theme,moving,layout,decor,avatars,motionSpeed);
  if(!result.ok)return result;
  try{storage?.setItem(OFFICE_STORAGE_KEY,JSON.stringify(result.value));return {ok:true};}
  catch{return {ok:false,error:'ไม่สามารถบันทึกห้องในเบราว์เซอร์ได้'};}
@@ -31,4 +34,4 @@ export function removeRoomSnapshot(storage){
  try{storage?.removeItem(OFFICE_STORAGE_KEY);return {ok:true};}
  catch{return {ok:false,error:'ไม่สามารถลบข้อมูลห้องได้'};}
 }
-export function defaultRoomSnapshot(){return {version:1,theme:'daylight',moving:true,layout:initialOfficeLayout(),decor:[...DEFAULT_DECOR],avatars:{}};}
+export function defaultRoomSnapshot(){return {version:1,theme:'daylight',moving:true,layout:initialOfficeLayout(),decor:[...DEFAULT_DECOR],avatars:{},motionSpeed:'normal'};}
