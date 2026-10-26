@@ -1,3 +1,4 @@
+import {TEAM_PRESETS,applyTeamStatus,teamStatusSummary} from './office-team.js';
 import {exportRoomJSON,importRoomJSON} from './office-room-transfer.js';
 import {ROOM_DECOR,DEFAULT_DECOR,toggleDecor} from './office-decor.js';
 import {saveRoomSnapshot,readRoomSnapshot,removeRoomSnapshot} from './office-room-storage.js';
@@ -36,6 +37,7 @@ export default function VirtualOfficeRoom(){
  }
  const person=STAFF.find(x=>x.id===selected)??STAFF[0];
  const active=layout.find(x=>x.id===selected)??layout[0];
+ const teamSummary=teamStatusSummary(layout);
  function setStatus(status){const r=changeOfficeStatus(layout,selected,status);if(r.ok)setLayout(r.layout);}
  function setName(name){if(!name.trim()){setError('ชื่อพนักงานต้องไม่ว่าง');return;}const r=renameOfficeStaff(layout,selected,name);if(r.ok){setLayout(r.layout);setError('');}else setError(r.error);}
  function moveDesk(direction){const r=moveOfficeStaff(layout,selected,direction);if(r.ok){setLayout(r.layout);setError('');}}
@@ -54,6 +56,7 @@ export default function VirtualOfficeRoom(){
    <button type="button" onClick={()=>{const r=removeRoomSnapshot(window.localStorage);setSaveStatus(r.ok?'ลบการจัดห้องที่บันทึกไว้แล้ว':r.error);}}>ลบข้อมูลที่บันทึก</button>
   </div>
   {transferOpen&&<div className="office-transfer"><h3>ย้ายการจัดห้องด้วย JSON</h3><p className="muted">ข้อมูลเฉพาะธีม พนักงาน และของตกแต่ง ไม่รวมรูปภาพพื้นหลัง</p><div className="office-transfer-actions"><button type="button" onClick={()=>{const r=exportRoomJSON(theme,moving,layout,decor);if(r.ok){setTransferJSON(r.content);setSaveStatus('เตรียม JSON สำหรับคัดลอกแล้ว');}else setSaveStatus(r.error);}}>สร้าง JSON ส่งออก</button><button type="button" disabled={!transferJSON} onClick={async()=>{try{await navigator.clipboard.writeText(transferJSON);setSaveStatus('คัดลอก JSON แล้ว');}catch{setSaveStatus('คัดลอกไม่สำเร็จ กรุณาเลือกข้อความเพื่อคัดลอกเอง');}}}>คัดลอก JSON</button></div><textarea aria-label="ข้อมูลห้อง JSON" value={transferJSON} onChange={e=>{setTransferJSON(e.target.value);setConfirmImport(false);}} placeholder="วาง JSON จากอีกเครื่องเพื่อเรียกคืน" /><label className="office-import-confirm"><input type="checkbox" checked={confirmImport} onChange={e=>setConfirmImport(e.target.checked)}/> ยืนยันว่าต้องการแทนที่การจัดห้องปัจจุบัน</label><button type="button" disabled={!confirmImport||!transferJSON.trim()} onClick={()=>{const r=importRoomJSON(transferJSON);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);setLayout(r.value.layout);setDecor(r.value.decor);setSelected(r.value.layout[0].id);setConfirmImport(false);setSaveStatus('นำเข้าการจัดห้องสำเร็จ');}}>นำเข้าการจัดห้อง</button></div>}
+  <div className="office-team-panel"><div className="office-team-summary" aria-live="polite"><strong>ภาพรวมพนักงาน</strong><span>นั่งทำงาน {teamSummary.working}</span><span>เดิน {teamSummary.walking}</span><span>พัก {teamSummary.resting}</span></div><div className="office-team-actions" role="group" aria-label="ตั้งค่าท่าทางพนักงานทั้งหมด">{TEAM_PRESETS.map(p=><button key={p.id} type="button" onClick={()=>{const r=applyTeamStatus(layout,p.status);if(r.ok){setLayout(r.layout);setSaveStatus('เปลี่ยนท่าทางพนักงานทั้งหมดแล้ว');}else setSaveStatus(r.error)}}>{p.label}</button>)}</div></div>
   {decorOpen&&<fieldset className="office-decor-controls"><legend>เลือกของตกแต่งในห้อง</legend>{Object.entries(ROOM_DECOR).map(([id,item])=><label key={id}><input type="checkbox" checked={decor.includes(id)} onChange={()=>{const r=toggleDecor(decor,id);if(r.ok)setDecor(r.decor)}}/>{item.symbol} {item.label}</label>)}</fieldset>}
   {error&&<p role="alert" className="office-error">{error}</p>}
   {saveStatus&&<p role="status" className="office-save-status">{saveStatus}</p>}
