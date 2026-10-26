@@ -1,3 +1,4 @@
+import {initialOfficeLayout,renameOfficeStaff,changeOfficeStatus,moveOfficeStaff,resetOfficeLayout} from './office-layout.js';
 import React,{useState,useEffect,useRef} from 'react';
 import {STAFF,ROOM_THEMES,validRoomTheme,validateBackgroundFile} from './virtual-office-model.js';
 import './virtual-office.css';
@@ -8,7 +9,7 @@ export default function VirtualOfficeRoom(){
  const [error,setError]=useState('');
  const [moving,setMoving]=useState(true);
  const [selected,setSelected]=useState(STAFF[0].id);
- const [statuses,setStatuses]=useState(Object.fromEntries(STAFF.map(x=>[x.id,'working'])));
+ const [layout,setLayout]=useState(initialOfficeLayout);
  const imageUrl=useRef('');
  useEffect(()=>()=>{if(imageUrl.current)URL.revokeObjectURL(imageUrl.current)},[]);
  function chooseBackground(event){
@@ -25,6 +26,11 @@ export default function VirtualOfficeRoom(){
   imageUrl.current='';setBackground('');setError('');
  }
  const person=STAFF.find(x=>x.id===selected)??STAFF[0];
+ const active=layout.find(x=>x.id===selected)??layout[0];
+ function setStatus(status){const r=changeOfficeStatus(layout,selected,status);if(r.ok)setLayout(r.layout);}
+ function setName(name){if(!name.trim()){setError('ชื่อพนักงานต้องไม่ว่าง');return;}const r=renameOfficeStaff(layout,selected,name);if(r.ok){setLayout(r.layout);setError('');}else setError(r.error);}
+ function moveDesk(direction){const r=moveOfficeStaff(layout,selected,direction);if(r.ok){setLayout(r.layout);setError('');}}
+
  return <section className="office-shell">
   <div className="office-heading"><div><h2>สำนักงานเสมือนแบบโต้ตอบ</h2><p className="muted">เลือกพนักงานเพื่อดูบทบาท เปลี่ยนฉากห้อง หรือเปิดการเคลื่อนไหวของตัวการ์ตูน</p></div><span className="office-demo">ตัวละครจำลอง · ยังไม่เชื่อมต่อ AI</span></div>
   <div className="office-toolbar">
@@ -40,15 +46,22 @@ export default function VirtualOfficeRoom(){
    <div className="office-plant" aria-hidden="true">🌿</div>
    <div className="office-floor" aria-hidden="true"/>
    <div className="office-desks">
-    {STAFF.map((staff,i)=><button type="button" className={'office-station'+(selected===staff.id?' is-selected':'')} key={staff.id} onClick={()=>setSelected(staff.id)} aria-pressed={selected===staff.id} style={{'--staff-accent':staff.accent,'--walk-delay':(i%4)*-1.4+'s'}}>
+    {layout.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" className={'office-station office-state-'+entry.status+(selected===staff.id?' is-selected':'')} key={staff.id} onClick={()=>setSelected(staff.id)} aria-pressed={selected===staff.id} style={{'--staff-accent':staff.accent,'--walk-delay':(i%4)*-1.4+'s'}}>
       <span className="office-character" aria-hidden="true"><span className="office-hair"/><span className="office-face"><i/><i/></span><span className="office-torso"/><span className="office-arm office-arm-left"/><span className="office-arm office-arm-right"/><span className="office-leg office-leg-left"/><span className="office-leg office-leg-right"/></span>
       <span className="office-desk" aria-hidden="true"><span className="office-monitor"/><span className="office-desk-top"/><span className="office-desk-legs"/></span>
-      <span className="office-name">{staff.name}</span>
-      <span className="office-status">{statuses[staff.id]==='working'?'กำลังทำงาน':statuses[staff.id]==='walking'?'เดินสำรวจ':'พักงาน'}</span>
-     </button>)}
+      <span className="office-name">{entry.name}</span>
+      <span className="office-status">{entry.status==='working'?'กำลังทำงาน':entry.status==='walking'?'เดินสำรวจ':'พักงาน'}</span>
+     </button>})}
    </div>
   </div>
-  <div className="office-details" aria-live="polite"><div><h3>{person.name}</h3><p>{person.role}</p><p className="muted">ตัวละครเป็นภาพจำลอง ยังไม่สามารถสั่งงาน AI หรือเข้าถึงเอกสารได้</p></div><label>สถานะจำลอง <select aria-label="สถานะพนักงาน" value={statuses[selected]} onChange={e=>setStatuses(v=>({...v,[selected]:e.target.value}))}><option value="working">กำลังทำงาน</option><option value="walking">เดินสำรวจ</option><option value="resting">พักงาน</option></select></label></div>
+  <div className="office-details" aria-live="polite">
+   <div><h3>{active.name}</h3><p>{person.role}</p><p className="muted">ปรับชื่อและตำแหน่งในห้องได้เฉพาะแท็บนี้ ตัวละครยังไม่ใช่ AI ที่ทำงานจริง</p></div>
+   <div className="office-editor">
+    <label>ชื่อที่แสดง <input aria-label="ชื่อพนักงาน" maxLength={40} value={active.name} onChange={e=>setName(e.target.value)} /></label>
+    <label>ท่าทาง <select aria-label="สถานะพนักงาน" value={active.status} onChange={e=>setStatus(e.target.value)}><option value="working">นั่งทำงาน</option><option value="walking">เดินไปมา</option><option value="resting">พักงาน</option></select></label>
+    <div className="office-reorder"><button type="button" onClick={()=>moveDesk(-1)} disabled={layout[0]?.id===selected}>ย้ายโต๊ะไปก่อนหน้า</button><button type="button" onClick={()=>moveDesk(1)} disabled={layout[layout.length-1]?.id===selected}>ย้ายโต๊ะไปถัดไป</button><button type="button" onClick={()=>{setLayout(resetOfficeLayout());setSelected(STAFF[0].id);setError('');}}>คืนค่าพนักงาน</button></div>
+   </div>
+  </div>
   <p className="office-footnote">ภาพพื้นหลังที่เลือกใช้เฉพาะในแท็บนี้ ไม่อัปโหลดหรือบันทึกบนเซิร์ฟเวอร์ รีเฟรชแล้วกลับเป็นฉากเริ่มต้น</p>
  </section>
 }
