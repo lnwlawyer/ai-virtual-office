@@ -84,7 +84,7 @@ export default function VirtualOfficeRoom(){
    </div>
    <div className="office-walking-lane" aria-label={`ทางเดินสำนักงาน มีพนักงานกำลังเดิน ${walkers.length} คน`}>
     <span className="office-lane-sign" aria-hidden="true">ทางเดินสำนักงาน</span>
-    {walkers.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" key={entry.id} className="office-lane-walker" style={{'--staff-accent':staff.accent,'--lane-delay':walkingLaneDelay(i),'--lane-duration':walkingLaneDuration(motionSpeed)}} onClick={()=>setSelected(entry.id)} aria-label={`เลือก ${entry.name} ที่กำลังเดิน`} title={entry.name}><span className="office-walker-head" aria-hidden="true"/><span className="office-walker-body" aria-hidden="true"/><span className="office-walker-feet" aria-hidden="true"/></button>})}
+    {walkers.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" key={entry.id} className="office-lane-walker" style={{'--staff-accent':staff.accent,'--lane-delay':walkingLaneDelay(i),'--lane-duration':walkingLaneDuration(motionSpeed)}} onClick={()=>setSelected(entry.id)} aria-label={`เลือก ${entry.name} ที่กำลังเดิน`} title={entry.name}><span className="office-walker-head" aria-hidden="true"/><span className="office-walker-body" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-left" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-right" aria-hidden="true"/><span className="office-walker-feet" aria-hidden="true"><i/><i/></span></button>})}
    </div>
   </div>
   <div className="office-details" aria-live="polite">
