@@ -41,3 +41,17 @@
 .office-team-actions button:hover{background:#e5f2f6}
 
 .office-room.is-moving .office-station.office-state-walking .office-character{animation-duration:var(--office-motion-duration,3.2s)!important}
+
+.office-room{padding-bottom:92px}
+.office-walking-lane{position:absolute;z-index:4;bottom:0;left:0;right:0;height:92px;background:linear-gradient(180deg,#ddd7caee,#aaa094ee);border-top:3px dashed #f7f1e9;overflow:hidden}
+.office-lane-sign{position:absolute;left:12px;bottom:8px;color:#31475b;font-size:11px;background:#ffffffa8;padding:3px 7px;border-radius:6px}
+.office-lane-walker{position:absolute;left:0;top:7px;width:44px;height:69px;border:0;border-radius:15px;background:transparent;cursor:pointer;transform:translateX(-60px)}
+.office-lane-walker:focus-visible{outline:3px solid #df9d27}
+.office-walker-head{position:absolute;top:2px;left:10px;width:25px;height:26px;border-radius:50%;background:#efbb91;border-top:7px solid #374858}
+.office-walker-body{position:absolute;top:29px;left:8px;width:29px;height:25px;border-radius:9px;background:var(--staff-accent)}
+.office-walker-feet{position:absolute;top:52px;left:12px;width:22px;height:14px;border-left:8px solid #36495a;border-right:8px solid #36495a}
+.office-room.is-moving .office-lane-walker{animation:office-lane-traverse var(--lane-duration,9s) linear var(--lane-delay,0s) infinite alternate}
+.office-room:not(.is-moving) .office-lane-walker{transform:translateX(0)}
+@keyframes office-lane-traverse{from{left:0%;transform:translateX(0)}to{left:calc(100% - 44px);transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.office-lane-walker{animation:none!important;transform:none!important}}
+@media(max-width:560px){.office-room{padding-bottom:84px}.office-walking-lane{height:84px}}
