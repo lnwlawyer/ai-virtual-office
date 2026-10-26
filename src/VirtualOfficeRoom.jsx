@@ -1,3 +1,4 @@
+import {MOTION_SPEEDS,validMotionSpeed,motionDuration} from './office-motion.js';
 import {TEAM_PRESETS,applyTeamStatus,teamStatusSummary} from './office-team.js';
 import {exportRoomJSON,importRoomJSON} from './office-room-transfer.js';
 import {ROOM_DECOR,DEFAULT_DECOR,toggleDecor} from './office-decor.js';
@@ -18,6 +19,7 @@ export default function VirtualOfficeRoom(){
  const [transferJSON,setTransferJSON]=useState('');
  const [confirmImport,setConfirmImport]=useState(false);
  const [moving,setMoving]=useState(true);
+ const [motionSpeed,setMotionSpeed]=useState('normal');
  const [selected,setSelected]=useState(STAFF[0].id);
  const [layout,setLayout]=useState(initialOfficeLayout);
  const imageUrl=useRef('');
@@ -49,6 +51,7 @@ export default function VirtualOfficeRoom(){
    <label className="office-file">เปลี่ยนภาพพื้นหลัง <input type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseBackground}/></label>
    <button type="button" onClick={clearBackground} disabled={!background}>ใช้ฉากเริ่มต้น</button>
    <button type="button" aria-pressed={moving} onClick={()=>setMoving(v=>!v)}>{moving?'หยุดการเคลื่อนไหว':'เปิดการเคลื่อนไหว'}</button>
+   <label>ความเร็วการเคลื่อนไหว <select aria-label="ความเร็วตัวละคร" value={motionSpeed} onChange={e=>{if(validMotionSpeed(e.target.value))setMotionSpeed(e.target.value)}}>{MOTION_SPEEDS.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
    <button type="button" aria-expanded={decorOpen} onClick={()=>setDecorOpen(v=>!v)}>{decorOpen?'ซ่อนตัวเลือกตกแต่ง':'ตกแต่งห้อง'}</button>
    <button type="button" aria-expanded={transferOpen} onClick={()=>setTransferOpen(v=>!v)}>{transferOpen?'ปิดการย้ายห้อง':'ส่งออก/นำเข้าห้อง'}</button>
    <button type="button" onClick={()=>{const r=saveRoomSnapshot(window.localStorage,theme,moving,layout,decor);setSaveStatus(r.ok?'บันทึกการจัดห้องในเบราว์เซอร์แล้ว':r.error);}}>บันทึกการจัดห้อง</button>
@@ -60,7 +63,7 @@ export default function VirtualOfficeRoom(){
   {decorOpen&&<fieldset className="office-decor-controls"><legend>เลือกของตกแต่งในห้อง</legend>{Object.entries(ROOM_DECOR).map(([id,item])=><label key={id}><input type="checkbox" checked={decor.includes(id)} onChange={()=>{const r=toggleDecor(decor,id);if(r.ok)setDecor(r.decor)}}/>{item.symbol} {item.label}</label>)}</fieldset>}
   {error&&<p role="alert" className="office-error">{error}</p>}
   {saveStatus&&<p role="status" className="office-save-status">{saveStatus}</p>}
-  <div className={'office-room office-'+theme+(moving?' is-moving':'')} style={background?{backgroundImage:'linear-gradient(#071e2d44,#071e2d33),url("'+background+'")'}:undefined} aria-label="ภาพจำลองห้องทำงานพร้อมพนักงาน 7 ตำแหน่ง">
+  <div className={'office-room office-'+theme+(moving?' is-moving':'')} style={{'--office-motion-duration':motionDuration(motionSpeed),...(background?{backgroundImage:'linear-gradient(#071e2d44,#071e2d33),url("'+background+'")'}:{})}} aria-label="ภาพจำลองห้องทำงานพร้อมพนักงาน 7 ตำแหน่ง">
    <div className="office-window" aria-hidden="true"><span>☀</span></div>
    <div className="office-clock" aria-hidden="true">◷</div>
    <div className="office-plant" aria-hidden="true">{decor.includes('plant')?'🌿':''}</div>
