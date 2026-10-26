@@ -1,3 +1,4 @@
+import {ROOM_DECOR,DEFAULT_DECOR,toggleDecor} from './office-decor.js';
 import {saveRoomSnapshot,readRoomSnapshot,removeRoomSnapshot} from './office-room-storage.js';
 import {initialOfficeLayout,renameOfficeStaff,changeOfficeStatus,moveOfficeStaff,resetOfficeLayout} from './office-layout.js';
 import React,{useState,useEffect,useRef} from 'react';
@@ -9,6 +10,8 @@ export default function VirtualOfficeRoom(){
  const [background,setBackground]=useState('');
  const [error,setError]=useState('');
  const [saveStatus,setSaveStatus]=useState('');
+ const [decor,setDecor]=useState([...DEFAULT_DECOR]);
+ const [decorOpen,setDecorOpen]=useState(false);
  const [moving,setMoving]=useState(true);
  const [selected,setSelected]=useState(STAFF[0].id);
  const [layout,setLayout]=useState(initialOfficeLayout);
@@ -40,16 +43,22 @@ export default function VirtualOfficeRoom(){
    <label className="office-file">เปลี่ยนภาพพื้นหลัง <input type="file" accept="image/png,image/jpeg,image/webp" onChange={chooseBackground}/></label>
    <button type="button" onClick={clearBackground} disabled={!background}>ใช้ฉากเริ่มต้น</button>
    <button type="button" aria-pressed={moving} onClick={()=>setMoving(v=>!v)}>{moving?'หยุดการเคลื่อนไหว':'เปิดการเคลื่อนไหว'}</button>
+   <button type="button" aria-expanded={decorOpen} onClick={()=>setDecorOpen(v=>!v)}>{decorOpen?'ซ่อนตัวเลือกตกแต่ง':'ตกแต่งห้อง'}</button>
    <button type="button" onClick={()=>{const r=saveRoomSnapshot(window.localStorage,theme,moving,layout);setSaveStatus(r.ok?'บันทึกการจัดห้องในเบราว์เซอร์แล้ว':r.error);}}>บันทึกการจัดห้อง</button>
    <button type="button" onClick={()=>{const r=readRoomSnapshot(window.localStorage);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);setLayout(r.value.layout);setSelected(r.value.layout[0].id);setSaveStatus('เรียกคืนการจัดห้องสำเร็จ');}}>เรียกคืนการจัดห้อง</button>
    <button type="button" onClick={()=>{const r=removeRoomSnapshot(window.localStorage);setSaveStatus(r.ok?'ลบการจัดห้องที่บันทึกไว้แล้ว':r.error);}}>ลบข้อมูลที่บันทึก</button>
   </div>
+  {decorOpen&&<fieldset className="office-decor-controls"><legend>เลือกของตกแต่งในห้อง</legend>{Object.entries(ROOM_DECOR).map(([id,item])=><label key={id}><input type="checkbox" checked={decor.includes(id)} onChange={()=>{const r=toggleDecor(decor,id);if(r.ok)setDecor(r.decor)}}/>{item.symbol} {item.label}</label>)}</fieldset>}
   {error&&<p role="alert" className="office-error">{error}</p>}
   {saveStatus&&<p role="status" className="office-save-status">{saveStatus}</p>}
   <div className={'office-room office-'+theme+(moving?' is-moving':'')} style={background?{backgroundImage:'linear-gradient(#071e2d44,#071e2d33),url("'+background+'")'}:undefined} aria-label="ภาพจำลองห้องทำงานพร้อมพนักงาน 7 ตำแหน่ง">
    <div className="office-window" aria-hidden="true"><span>☀</span></div>
    <div className="office-clock" aria-hidden="true">◷</div>
-   <div className="office-plant" aria-hidden="true">🌿</div>
+   <div className="office-plant" aria-hidden="true">{decor.includes('plant')?'🌿':''}</div>
+   {decor.includes('books')&&<div className="office-decor-books" aria-hidden="true">📚</div>}
+   {decor.includes('board')&&<div className="office-decor-board" aria-hidden="true">📋 <span>งานวันนี้</span></div>}
+   {decor.includes('coffee')&&<div className="office-decor-coffee" aria-hidden="true">☕</div>}
+   {decor.includes('lamp')&&<div className="office-decor-lamp" aria-hidden="true">💡</div>}
    <div className="office-floor" aria-hidden="true"/>
    <div className="office-desks">
     {layout.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" className={'office-station office-state-'+entry.status+(selected===staff.id?' is-selected':'')} key={staff.id} onClick={()=>setSelected(staff.id)} aria-pressed={selected===staff.id} style={{'--staff-accent':staff.accent,'--walk-delay':(i%4)*-1.4+'s'}}>
@@ -68,6 +77,6 @@ export default function VirtualOfficeRoom(){
     <div className="office-reorder"><button type="button" onClick={()=>moveDesk(-1)} disabled={layout[0]?.id===selected}>ย้ายโต๊ะไปก่อนหน้า</button><button type="button" onClick={()=>moveDesk(1)} disabled={layout[layout.length-1]?.id===selected}>ย้ายโต๊ะไปถัดไป</button><button type="button" onClick={()=>{setLayout(resetOfficeLayout());setSelected(STAFF[0].id);setError('');}}>คืนค่าพนักงาน</button></div>
    </div>
   </div>
-  <p className="office-footnote">ชื่อพนักงาน ลำดับโต๊ะ ท่าทาง และธีมสามารถบันทึกในเบราว์เซอร์ได้ด้วยตนเอง ภาพพื้นหลังที่อัปโหลดจะไม่ถูกบันทึกหรือส่งขึ้นเซิร์ฟเวอร์</p>
+  <p className="office-footnote">ชื่อพนักงาน ลำดับโต๊ะ ท่าทาง และธีมสามารถบันทึกในเบราว์เซอร์ได้ด้วยตนเอง ของตกแต่งเป็นการตั้งค่าเฉพาะแท็บนี้ ภาพพื้นหลังที่อัปโหลดจะไม่ถูกบันทึกหรือส่งขึ้นเซิร์ฟเวอร์</p>
  </section>
 }
