@@ -1,7 +1,7 @@
 import {validateRoomSnapshot,createRoomSnapshot} from './office-room-storage.js';
 export const MAX_ROOM_IMPORT_BYTES=12000;
-export function exportRoomJSON(theme,moving,layout,decor){
- const r=createRoomSnapshot(theme,moving,layout,decor);
+export function exportRoomJSON(theme,moving,layout,decor,avatars={}){
+ const r=createRoomSnapshot(theme,moving,layout,decor,avatars);
  if(!r.ok)return r;
  return {ok:true,content:JSON.stringify(r.value,null,2)};
 }
