@@ -13,3 +13,15 @@
 .office-room:not(.is-moving) .office-character{animation:none!important}
 @keyframes office-walk{0%{transform:translateX(calc(-50% - 17px))}50%{transform:translateX(calc(-50% + 17px)) translateY(-3px)}100%{transform:translateX(calc(-50% - 17px))}}
 @media(prefers-reduced-motion:reduce){.office-room .office-character,.office-room .office-arm{animation:none!important}}
+
+.office-decor-controls{display:flex;flex-wrap:wrap;gap:12px;border:1px solid #c5d7e1;border-radius:12px;padding:12px 16px;background:#f6fafc}
+.office-decor-controls legend{font-weight:700;padding:0 6px}
+.office-decor-controls label{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;background:white}
+.office-decor-controls input{accent-color:#236c78}
+.office-decor-books,.office-decor-board,.office-decor-coffee,.office-decor-lamp{position:absolute;z-index:0;pointer-events:none}
+.office-decor-books{top:45px;left:34%;font-size:45px;padding:5px 13px;border-bottom:8px solid #926c56;background:#ffffff61;border-radius:5px}
+.office-decor-board{top:30px;right:21%;display:flex;flex-direction:column;align-items:center;font-size:32px;background:#fff9e9d9;border:6px solid #c59b70;border-radius:8px;padding:8px 16px}
+.office-decor-board span{font-size:11px;color:#385161}
+.office-decor-coffee{bottom:30%;left:4%;font-size:38px;background:#ffffffa8;border-radius:10px;padding:8px}
+.office-decor-lamp{top:8px;left:55%;font-size:39px;filter:drop-shadow(0 5px 15px #f6d77b)}
+@media(max-width:560px){.office-decor-books{top:90px;left:40%;font-size:27px}.office-decor-board{right:5%;top:110px;padding:4px;font-size:22px}.office-decor-coffee{bottom:10%;left:0;font-size:24px}.office-decor-lamp{left:50%;font-size:24px}}
