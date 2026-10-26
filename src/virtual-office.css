@@ -33,3 +33,9 @@
 .office-transfer textarea{font-family:ui-monospace,Consolas,monospace;min-height:130px;margin:0}
 .office-import-confirm{display:flex;gap:8px;align-items:center}
 .office-transfer button:disabled{opacity:.5}
+
+.office-team-panel{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid #c9dce6;border-radius:12px;padding:12px;background:#f6fafc}
+.office-team-summary,.office-team-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.office-team-summary span{font-size:13px;background:white;border-radius:20px;padding:5px 10px;color:#29455c}
+.office-team-actions button{border:1px solid #b9ced9;border-radius:9px;background:white;color:#193a4e;padding:8px 12px}
+.office-team-actions button:hover{background:#e5f2f6}
