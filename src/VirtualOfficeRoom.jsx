@@ -1,3 +1,4 @@
+import {exportRoomJSON,importRoomJSON} from './office-room-transfer.js';
 import {ROOM_DECOR,DEFAULT_DECOR,toggleDecor} from './office-decor.js';
 import {saveRoomSnapshot,readRoomSnapshot,removeRoomSnapshot} from './office-room-storage.js';
 import {initialOfficeLayout,renameOfficeStaff,changeOfficeStatus,moveOfficeStaff,resetOfficeLayout} from './office-layout.js';
@@ -12,6 +13,9 @@ export default function VirtualOfficeRoom(){
  const [saveStatus,setSaveStatus]=useState('');
  const [decor,setDecor]=useState([...DEFAULT_DECOR]);
  const [decorOpen,setDecorOpen]=useState(false);
+ const [transferOpen,setTransferOpen]=useState(false);
+ const [transferJSON,setTransferJSON]=useState('');
+ const [confirmImport,setConfirmImport]=useState(false);
  const [moving,setMoving]=useState(true);
  const [selected,setSelected]=useState(STAFF[0].id);
  const [layout,setLayout]=useState(initialOfficeLayout);
@@ -44,10 +48,12 @@ export default function VirtualOfficeRoom(){
    <button type="button" onClick={clearBackground} disabled={!background}>ใช้ฉากเริ่มต้น</button>
    <button type="button" aria-pressed={moving} onClick={()=>setMoving(v=>!v)}>{moving?'หยุดการเคลื่อนไหว':'เปิดการเคลื่อนไหว'}</button>
    <button type="button" aria-expanded={decorOpen} onClick={()=>setDecorOpen(v=>!v)}>{decorOpen?'ซ่อนตัวเลือกตกแต่ง':'ตกแต่งห้อง'}</button>
+   <button type="button" aria-expanded={transferOpen} onClick={()=>setTransferOpen(v=>!v)}>{transferOpen?'ปิดการย้ายห้อง':'ส่งออก/นำเข้าห้อง'}</button>
    <button type="button" onClick={()=>{const r=saveRoomSnapshot(window.localStorage,theme,moving,layout,decor);setSaveStatus(r.ok?'บันทึกการจัดห้องในเบราว์เซอร์แล้ว':r.error);}}>บันทึกการจัดห้อง</button>
    <button type="button" onClick={()=>{const r=readRoomSnapshot(window.localStorage);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);setLayout(r.value.layout);setDecor(r.value.decor);setSelected(r.value.layout[0].id);setSaveStatus('เรียกคืนการจัดห้องสำเร็จ');}}>เรียกคืนการจัดห้อง</button>
    <button type="button" onClick={()=>{const r=removeRoomSnapshot(window.localStorage);setSaveStatus(r.ok?'ลบการจัดห้องที่บันทึกไว้แล้ว':r.error);}}>ลบข้อมูลที่บันทึก</button>
   </div>
+  {transferOpen&&<div className="office-transfer"><h3>ย้ายการจัดห้องด้วย JSON</h3><p className="muted">ข้อมูลเฉพาะธีม พนักงาน และของตกแต่ง ไม่รวมรูปภาพพื้นหลัง</p><div className="office-transfer-actions"><button type="button" onClick={()=>{const r=exportRoomJSON(theme,moving,layout,decor);if(r.ok){setTransferJSON(r.content);setSaveStatus('เตรียม JSON สำหรับคัดลอกแล้ว');}else setSaveStatus(r.error);}}>สร้าง JSON ส่งออก</button><button type="button" disabled={!transferJSON} onClick={async()=>{try{await navigator.clipboard.writeText(transferJSON);setSaveStatus('คัดลอก JSON แล้ว');}catch{setSaveStatus('คัดลอกไม่สำเร็จ กรุณาเลือกข้อความเพื่อคัดลอกเอง');}}}>คัดลอก JSON</button></div><textarea aria-label="ข้อมูลห้อง JSON" value={transferJSON} onChange={e=>{setTransferJSON(e.target.value);setConfirmImport(false);}} placeholder="วาง JSON จากอีกเครื่องเพื่อเรียกคืน" /><label className="office-import-confirm"><input type="checkbox" checked={confirmImport} onChange={e=>setConfirmImport(e.target.checked)}/> ยืนยันว่าต้องการแทนที่การจัดห้องปัจจุบัน</label><button type="button" disabled={!confirmImport||!transferJSON.trim()} onClick={()=>{const r=importRoomJSON(transferJSON);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);setLayout(r.value.layout);setDecor(r.value.decor);setSelected(r.value.layout[0].id);setConfirmImport(false);setSaveStatus('นำเข้าการจัดห้องสำเร็จ');}}>นำเข้าการจัดห้อง</button></div>}
   {decorOpen&&<fieldset className="office-decor-controls"><legend>เลือกของตกแต่งในห้อง</legend>{Object.entries(ROOM_DECOR).map(([id,item])=><label key={id}><input type="checkbox" checked={decor.includes(id)} onChange={()=>{const r=toggleDecor(decor,id);if(r.ok)setDecor(r.decor)}}/>{item.symbol} {item.label}</label>)}</fieldset>}
   {error&&<p role="alert" className="office-error">{error}</p>}
   {saveStatus&&<p role="status" className="office-save-status">{saveStatus}</p>}
