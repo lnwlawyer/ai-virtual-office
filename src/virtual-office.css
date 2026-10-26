@@ -25,3 +25,11 @@
 .office-decor-coffee{bottom:30%;left:4%;font-size:38px;background:#ffffffa8;border-radius:10px;padding:8px}
 .office-decor-lamp{top:8px;left:55%;font-size:39px;filter:drop-shadow(0 5px 15px #f6d77b)}
 @media(max-width:560px){.office-decor-books{top:90px;left:40%;font-size:27px}.office-decor-board{right:5%;top:110px;padding:4px;font-size:22px}.office-decor-coffee{bottom:10%;left:0;font-size:24px}.office-decor-lamp{left:50%;font-size:24px}}
+
+.office-transfer{background:#f8fbfd;border:1px solid #c9dce6;border-radius:14px;padding:18px;display:grid;gap:10px}
+.office-transfer h3,.office-transfer p{margin:0}
+.office-transfer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.office-transfer button{border:1px solid #b8cbd7;background:white;color:#17334a;padding:9px 13px;border-radius:8px}
+.office-transfer textarea{font-family:ui-monospace,Consolas,monospace;min-height:130px;margin:0}
+.office-import-confirm{display:flex;gap:8px;align-items:center}
+.office-transfer button:disabled{opacity:.5}
