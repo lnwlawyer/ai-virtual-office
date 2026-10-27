@@ -284,7 +284,7 @@ test('invalid portable backup cannot overwrite existing tasks',async({page})=>{
  await backup.fill('{"invalid":true}');
  await page.getByRole('checkbox',{name:/ฉันเข้าใจว่าการกู้คืน/}).check();
  await page.getByRole('button',{name:'กู้คืนข้อมูลในแท็บนี้'}).click();
- await expect(page.getByRole('status').filter({hasText:/ไม่ถูกต้อง|ไม่รองรับ|รูปแบบ|ข้อมูล/})).toBeVisible();
+ await expect(page.getByRole('status').filter({hasText:'Unsupported backup version'})).toBeVisible();
  await nav.getByRole('button',{name:/Tasks & Projects|งานและโครงการ/}).click();
  await expect(page.getByRole('heading',{name:'งานที่ต้องรักษา'})).toBeVisible();
 });
