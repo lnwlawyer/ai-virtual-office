@@ -101,3 +101,13 @@
 .office-layout-history-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.office-layout-history-controls button{border:1px solid #b9cdd8;border-radius:8px;background:#fff;color:#17334a;padding:8px 12px;min-height:38px}.office-layout-history-controls button:disabled{opacity:.4}.office-layout-history-controls span{font-size:12px;color:#557185}
 
 .office-slot-controls{display:flex;align-items:end;flex-wrap:wrap;gap:9px;padding:10px 12px;background:#f3f8f6;border:1px solid #c4dcd2;border-radius:12px}.office-slot-controls label{display:grid;gap:4px;font-size:13px}.office-slot-controls select,.office-slot-controls button{min-height:38px;padding:8px 10px;border:1px solid #b9cdd8;border-radius:8px;background:#fff;color:#17334a}.office-slot-controls button:disabled{opacity:.45}
+
+/* Respect OS accessibility settings across every 2D office animation. */
+@media (prefers-reduced-motion: reduce) {
+  .office-room *, .office-room *::before, .office-room *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
