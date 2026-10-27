@@ -201,3 +201,29 @@ test('tampered room JSON cannot replace current staff or settings',async({page})
  await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ข้อมูลเดิมที่ต้องรักษา');
  await expect(page.locator('.office-station')).toHaveCount(7);
 });
+
+test('deleting one saved room slot preserves another slot and requires confirmation',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('ชุดหนึ่ง');
+ await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('2');
+ await name.fill('ชุดสอง');
+ await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('1');
+ await page.getByRole('button',{name:'ลบชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยกเลิก'}).click();
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ await page.getByRole('button',{name:'ลบชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeDisabled();
+ await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('2');
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ await page.getByRole('button',{name:'เรียกคืนชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ชุดสอง');
+});
