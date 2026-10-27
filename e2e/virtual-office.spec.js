@@ -269,3 +269,22 @@ test('reset room preserves saved slots and can restore a saved room',async({page
  await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
  await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ห้องก่อนคืนค่า');
 });
+
+test('invalid portable backup cannot overwrite existing tasks',async({page})=>{
+ await page.goto('/');
+ const nav=page.getByRole('navigation',{name:'เมนูหลัก'});
+ await nav.getByRole('button',{name:/Tasks & Projects|งานและโครงการ/}).click();
+ await page.getByRole('textbox',{name:'Task title'}).fill('งานที่ต้องรักษา');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await expect(page.getByRole('heading',{name:'งานที่ต้องรักษา'})).toBeVisible();
+ await nav.getByRole('button',{name:/Settings & Security|ตั้งค่าและความปลอดภัย/}).click();
+ await page.getByRole('button',{name:'เตรียมข้อมูลสำรอง'}).click();
+ const backup=page.getByRole('textbox',{name:'ข้อมูลสำรอง JSON'});
+ await expect(backup).not.toBeEmpty();
+ await backup.fill('{"invalid":true}');
+ await page.getByRole('checkbox',{name:/ฉันเข้าใจว่าการกู้คืน/}).check();
+ await page.getByRole('button',{name:'กู้คืนข้อมูลในแท็บนี้'}).click();
+ await expect(page.getByRole('status').filter({hasText:'Unsupported backup version'})).toBeVisible();
+ await nav.getByRole('button',{name:/Tasks & Projects|งานและโครงการ/}).click();
+ await expect(page.getByRole('heading',{name:'งานที่ต้องรักษา'})).toBeVisible();
+});
