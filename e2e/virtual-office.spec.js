@@ -112,3 +112,18 @@ test('keyboard undo redo works outside editors without stealing text input undo'
  await page.keyboard.press('ControlOrMeta+z');
  await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ทดสอบคีย์ลัด');
 });
+
+test('restricted browser storage still renders office and reports failed saves',async({page})=>{
+ await page.addInitScript(()=>{
+  Object.defineProperty(window,'localStorage',{configurable:true,get(){throw new DOMException('Storage access blocked','SecurityError')}});
+ });
+ await openOffice(page);
+ await expect(page.locator('.office-station')).toHaveCount(7);
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeDisabled();
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.locator('.office-save-status')).toContainText('เบราว์เซอร์ไม่อนุญาต');
+ await page.getByRole('button',{name:'เครื่องมือจัดการห้องเพิ่มเติม'}).click();
+ await page.getByRole('button',{name:'บันทึกการจัดห้อง',exact:true}).click();
+ await expect(page.locator('.office-save-status')).toContainText('เบราว์เซอร์ไม่อนุญาต');
+});
