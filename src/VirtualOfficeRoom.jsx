@@ -1,3 +1,5 @@
+import {ROOM_SLOTS,saveRoomSlot,readRoomSlot,removeRoomSlot,listRoomSlots} from './office-room-slots.js';
+import {createRoomSnapshot} from './office-room-storage.js';
 import {initialHistory,commitHistory,undoHistory,redoHistory,resetHistory} from './office-layout-history.js';
 import {STAFF_FILTERS,matchingStaff,nextMatchingStaff} from './office-staff-navigation.js';
 import {AVATAR_STYLES,avatarStyle,setAvatarStyle} from './office-avatar-styles.js';
@@ -24,6 +26,9 @@ export default function VirtualOfficeRoom(){
  const [confirmImport,setConfirmImport]=useState(false);
  const [confirmReset,setConfirmReset]=useState(false);
  const [confirmDeleteSaved,setConfirmDeleteSaved]=useState(false);
+ const [slotId,setSlotId]=useState('1');
+ const [slotVersion,setSlotVersion]=useState(0);
+ const [slotAction,setSlotAction]=useState(null);
  const [confirmTeamPreset,setConfirmTeamPreset]=useState(null);
  const [moving,setMoving]=useState(true);
  const [motionSpeed,setMotionSpeed]=useState('normal');
@@ -61,6 +66,18 @@ export default function VirtualOfficeRoom(){
  const walkers=walkingStaff(layout);
  const matches=matchingStaff(layout,staffSearch,staffFilter);
  const matchingIds=new Set(matches.map(x=>x.id));
+ const slots=typeof window==='undefined'?ROOM_SLOTS.map(x=>({...x,occupied:false})):listRoomSlots(window.localStorage);
+ const chosenSlot=slots.find(x=>x.id===slotId);
+ function applySnapshot(value){setTheme(value.theme);setMoving(value.moving);restoreLayout(value.layout);setDecor(value.decor);setAvatarStyles(value.avatars);setMotionSpeed(value.motionSpeed);setSelected(value.layout[0].id);setNameDraft(value.layout[0].name);setStaffSearch('');setStaffFilter('all');}
+ function confirmSlotAction(){
+  let r;
+  if(slotAction==='save'){const snapshot=createRoomSnapshot(theme,moving,layout,decor,avatarStyles,motionSpeed);r=snapshot.ok?saveRoomSlot(window.localStorage,slotId,snapshot.value):snapshot;}
+  else if(slotAction==='load'){r=readRoomSlot(window.localStorage,slotId);if(r.ok)applySnapshot(r.value);}
+  else if(slotAction==='delete'){r=removeRoomSlot(window.localStorage,slotId);}
+  else return;
+  setSaveStatus(r.ok?({save:'บันทึกห้องในช่องที่เลือกแล้ว',load:'เรียกคืนห้องจากช่องที่เลือกแล้ว',delete:'ลบข้อมูลช่องที่เลือกแล้ว'}[slotAction]):r.error);
+  setSlotAction(null);setSlotVersion(v=>v+1);
+ }
  function setStatus(status){const r=changeOfficeStatus(layout,selected,status);if(r.ok)setLayout(r.layout);}
  function commitName(){const r=renameOfficeStaff(layout,selected,nameDraft);if(r.ok){setLayout(r.layout);setNameDraft(r.layout.find(x=>x.id===selected).name);setError('');}else setError(r.error);}
  function cancelName(){setNameDraft(active.name);setError('');}
@@ -86,6 +103,8 @@ export default function VirtualOfficeRoom(){
    <button type="button" onClick={()=>setConfirmReset(v=>!v)} aria-expanded={confirmReset}>{confirmReset?'ยกเลิกคืนค่าห้อง':'คืนค่าห้องทั้งหมด'}</button>
    </div>
   </div>
+  <div className="office-slot-controls" role="group" aria-label="ช่องบันทึกการจัดห้อง"><label>ชุดการจัดห้อง <select aria-label="เลือกช่องบันทึกห้อง" value={slotId} onChange={e=>{setSlotId(e.target.value);setSlotAction(null)}}>{slots.map(x=><option key={x.id} value={x.id}>{x.label} — {x.occupied?'มีข้อมูล':'ว่าง'}</option>)}</select></label><button type="button" onClick={()=>setSlotAction('save')}>บันทึกชุดนี้</button><button type="button" disabled={!chosenSlot?.occupied} onClick={()=>setSlotAction('load')}>เรียกคืนชุดนี้</button><button type="button" disabled={!chosenSlot?.occupied} onClick={()=>setSlotAction('delete')}>ลบชุดนี้</button></div>
+  {slotAction&&<div className="office-reset-confirm" role="group" aria-label="ยืนยันการจัดการช่องบันทึก"><p>{slotAction==='save'?'ยืนยันบันทึกการจัดห้องปัจจุบัน (ข้อมูลเดิมในช่องนี้จะถูกแทนที่)':slotAction==='load'?'ยืนยันเรียกคืนชุดนี้แทนการจัดห้องปัจจุบัน':'ยืนยันลบชุดการจัดห้องที่เลือก'} — {chosenSlot?.label}</p><button type="button" onClick={confirmSlotAction}>ยืนยัน</button><button type="button" onClick={()=>setSlotAction(null)}>ยกเลิก</button></div>}
   {confirmDeleteSaved&&<div className="office-reset-confirm" role="group" aria-label="ยืนยันลบข้อมูลห้องที่บันทึก"><p>ลบเฉพาะข้อมูลการจัดห้องที่บันทึกในเบราว์เซอร์ การจัดห้องที่กำลังแสดงจะไม่เปลี่ยนแปลง</p><button type="button" onClick={()=>{const r=removeRoomSnapshot(window.localStorage);setSaveStatus(r.ok?'ลบข้อมูลห้องที่บันทึกไว้แล้ว':r.error);setConfirmDeleteSaved(false)}}>ยืนยันลบข้อมูลที่บันทึก</button><button type="button" onClick={()=>setConfirmDeleteSaved(false)}>ยกเลิก</button></div>}
   {confirmReset&&<div className="office-reset-confirm" role="group" aria-label="ยืนยันคืนค่าห้องทั้งหมด"><p>คืนค่าธีม พนักงาน ท่าทาง โต๊ะ ของตกแต่ง ความเร็ว และลักษณะตัวละคร รวมถึงล้างภาพพื้นหลังที่เลือกในแท็บนี้ โดยไม่ลบข้อมูลห้องที่บันทึกไว้ในเบราว์เซอร์</p><button type="button" onClick={()=>{const d=defaultRoomSnapshot();setTheme(d.theme);setMoving(d.moving);restoreLayout(d.layout);setDecor(d.decor);setAvatarStyles(d.avatars);setMotionSpeed(d.motionSpeed);setSelected(d.layout[0].id);setNameDraft(d.layout[0].name);setStaffSearch('');setStaffFilter('all');clearBackground();setConfirmReset(false);setSaveStatus('คืนค่าห้องเป็นค่าเริ่มต้นแล้ว (ข้อมูลที่บันทึกไว้ยังอยู่)');}}>ยืนยันคืนค่าห้อง</button><button type="button" onClick={()=>setConfirmReset(false)}>ยกเลิก</button></div>}
   {transferOpen&&<div className="office-transfer"><h3>ย้ายการจัดห้องด้วย JSON</h3><p className="muted">ข้อมูลเฉพาะธีม พนักงาน และของตกแต่ง ไม่รวมรูปภาพพื้นหลัง</p><div className="office-transfer-actions"><button type="button" onClick={()=>{const r=exportRoomJSON(theme,moving,layout,decor,avatarStyles,motionSpeed);if(r.ok){setTransferJSON(r.content);setSaveStatus('เตรียม JSON สำหรับคัดลอกแล้ว');}else setSaveStatus(r.error);}}>สร้าง JSON ส่งออก</button><button type="button" disabled={!transferJSON} onClick={async()=>{try{await navigator.clipboard.writeText(transferJSON);setSaveStatus('คัดลอก JSON แล้ว');}catch{setSaveStatus('คัดลอกไม่สำเร็จ กรุณาเลือกข้อความเพื่อคัดลอกเอง');}}}>คัดลอก JSON</button></div><textarea aria-label="ข้อมูลห้อง JSON" value={transferJSON} onChange={e=>{setTransferJSON(e.target.value);setConfirmImport(false);}} placeholder="วาง JSON จากอีกเครื่องเพื่อเรียกคืน" /><label className="office-import-confirm"><input type="checkbox" checked={confirmImport} onChange={e=>setConfirmImport(e.target.checked)}/> ยืนยันว่าต้องการแทนที่การจัดห้องปัจจุบัน</label><button type="button" disabled={!confirmImport||!transferJSON.trim()} onClick={()=>{const r=importRoomJSON(transferJSON);if(!r.ok){setSaveStatus(r.error);return;}setTheme(r.value.theme);setMoving(r.value.moving);restoreLayout(r.value.layout);setDecor(r.value.decor);setAvatarStyles(r.value.avatars);setMotionSpeed(r.value.motionSpeed);setSelected(r.value.layout[0].id);setNameDraft(r.value.layout[0].name);setConfirmImport(false);setSaveStatus('นำเข้าการจัดห้องสำเร็จ');}}>นำเข้าการจัดห้อง</button></div>}
