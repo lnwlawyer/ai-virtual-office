@@ -95,3 +95,5 @@
 .office-lane-walker.office-filter-dim{opacity:.2}
 .office-station.office-filter-dim.is-selected{opacity:.75}
 @media(max-width:560px){.office-staff-finder label:first-child{flex:1 1 100%}.office-staff-finder input{width:100%}.office-toolbar-advanced{width:100%}}
+
+.office-name-editor{display:flex;align-items:end;gap:8px;flex-wrap:wrap}.office-name-editor label{flex:1 1 180px}.office-name-editor button{min-height:38px}.office-name-editor button:disabled{opacity:.5}
