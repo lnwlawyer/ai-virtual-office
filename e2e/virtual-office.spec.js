@@ -98,3 +98,17 @@ test('room stays within viewport width and staff controls remain reachable',asyn
  await expect(page.getByRole('button',{name:'เครื่องมือจัดการห้องเพิ่มเติม'})).toBeVisible();
  await expect(page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'})).toBeVisible();
 });
+
+test('keyboard undo redo works outside editors without stealing text input undo',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('ทดสอบคีย์ลัด');await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.locator('.office-heading h2').click();
+ await page.keyboard.press('ControlOrMeta+z');
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ผู้จัดการสำนักงาน');
+ await page.keyboard.press('ControlOrMeta+Shift+z');
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ทดสอบคีย์ลัด');
+ await name.focus();
+ await page.keyboard.press('ControlOrMeta+z');
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ทดสอบคีย์ลัด');
+});

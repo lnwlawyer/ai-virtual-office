@@ -1,3 +1,4 @@
+import {officeHistoryShortcut} from './office-history-shortcuts.js';
 import {ROOM_SLOTS,saveRoomSlot,readRoomSlot,removeRoomSlot,listRoomSlots,copyRoomSlot} from './office-room-slots.js';
 import {createRoomSnapshot} from './office-room-storage.js';
 import {initialHistory,commitHistory,undoHistory,redoHistory,resetHistory} from './office-layout-history.js';
@@ -45,6 +46,7 @@ export default function VirtualOfficeRoom(){
  function undoLayout(){setLayoutHistory(h=>undoHistory(h));setSaveStatus('ย้อนกลับการแก้ไขพนักงานแล้ว');}
  function redoLayout(){setLayoutHistory(h=>redoHistory(h));setSaveStatus('ทำซ้ำการแก้ไขพนักงานแล้ว');}
  const [nameDraft,setNameDraft]=useState('');
+ useEffect(()=>{function onKeyDown(event){const action=officeHistoryShortcut(event);if(!action)return;event.preventDefault();setLayoutHistory(h=>action==='undo'?undoHistory(h):redoHistory(h));}window.addEventListener('keydown',onKeyDown);return ()=>window.removeEventListener('keydown',onKeyDown)},[]);
  useEffect(()=>{setNameDraft(layout.find(x=>x.id===selected)?.name??'')},[selected,layoutHistory.present]);
  const imageUrl=useRef('');
  useEffect(()=>()=>{if(imageUrl.current)URL.revokeObjectURL(imageUrl.current)},[]);
@@ -87,7 +89,7 @@ export default function VirtualOfficeRoom(){
 
  return <section className="office-shell">
   <div className="office-heading"><div><h2>สำนักงานเสมือนแบบโต้ตอบ</h2><p className="muted">เลือกพนักงานเพื่อดูบทบาท เปลี่ยนฉากห้อง หรือเปิดการเคลื่อนไหวของตัวการ์ตูน</p></div><span className="office-demo">ตัวละครจำลอง · ยังไม่เชื่อมต่อ AI</span></div>
-  <div className="office-layout-history-controls" role="group" aria-label="ย้อนกลับหรือทำซ้ำการแก้ไขพนักงาน"><button type="button" disabled={!layoutHistory.past.length} onClick={undoLayout}>↶ ย้อนกลับ</button><button type="button" disabled={!layoutHistory.future.length} onClick={redoLayout}>↷ ทำซ้ำ</button><span>ย้อนกลับได้ {layoutHistory.past.length} ขั้นตอน</span></div>
+  <div className="office-layout-history-controls" role="group" aria-label="ย้อนกลับหรือทำซ้ำการแก้ไขพนักงาน"><button type="button" disabled={!layoutHistory.past.length} onClick={undoLayout}>↶ ย้อนกลับ</button><button type="button" disabled={!layoutHistory.future.length} onClick={redoLayout}>↷ ทำซ้ำ</button><span>ย้อนกลับได้ {layoutHistory.past.length} ขั้นตอน · Ctrl/⌘+Z ย้อนกลับ · Ctrl/⌘+Shift+Z ทำซ้ำ</span></div>
   <div className="office-staff-finder" role="search" aria-label="ค้นหาพนักงานในสำนักงาน"><label>ค้นหาพนักงาน <input aria-label="ค้นหาชื่อหรือบทบาทพนักงาน" type="search" maxLength={80} value={staffSearch} onChange={e=>setStaffSearch(e.target.value)} placeholder="ชื่อหรือบทบาท"/></label><label>สถานะ <select aria-label="กรองสถานะพนักงาน" value={staffFilter} onChange={e=>setStaffFilter(e.target.value)}><option value="all">ทั้งหมด</option><option value="working">กำลังทำงาน</option><option value="walking">กำลังเดิน</option><option value="resting">พักงาน</option></select></label><span role="status">พบ {matches.length} / {layout.length} คน</span><button type="button" disabled={!matches.length} onClick={()=>setSelected(nextMatchingStaff(layout,staffSearch,staffFilter,selected,-1))}>ก่อนหน้า</button><button type="button" disabled={!matches.length} onClick={()=>setSelected(nextMatchingStaff(layout,staffSearch,staffFilter,selected,1))}>ถัดไป</button><button type="button" disabled={!staffSearch&&staffFilter==='all'} onClick={()=>{setStaffSearch('');setStaffFilter('all')}}>ล้างตัวกรอง</button></div>
   <button type="button" className="office-advanced-toggle" aria-expanded={advancedOpen} onClick={()=>setAdvancedOpen(v=>!v)}>{advancedOpen?'ซ่อนเครื่องมือจัดการห้อง':'เครื่องมือจัดการห้องเพิ่มเติม'}</button>
   <div className="office-toolbar">
