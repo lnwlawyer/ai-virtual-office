@@ -181,3 +181,23 @@ test('office save slots are isolated between independent browser contexts',async
   await expect(otherPage.locator('.office-station')).toHaveCount(7);
  }finally{await separateContext.close();}
 });
+
+test('tampered room JSON cannot replace current staff or settings',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('ข้อมูลเดิมที่ต้องรักษา');
+ await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'เครื่องมือจัดการห้องเพิ่มเติม'}).click();
+ await page.getByRole('button',{name:'ส่งออก/นำเข้าห้อง'}).click();
+ await page.getByRole('button',{name:'สร้าง JSON ส่งออก'}).click();
+ const field=page.getByRole('textbox',{name:'ข้อมูลห้อง JSON'});
+ const original=JSON.parse(await field.inputValue());
+ original.layout[0].name='ชื่อที่ไม่ควรนำเข้า';
+ original.layout[1].id=original.layout[0].id;
+ await field.fill(JSON.stringify(original));
+ await page.getByRole('checkbox',{name:/ยืนยันว่าต้องการแทนที่/}).check();
+ await page.getByRole('button',{name:'นำเข้าการจัดห้อง'}).click();
+ await expect(page.getByRole('status').filter({hasText:'ข้อมูลพนักงานไม่ถูกต้อง'})).toBeVisible();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ข้อมูลเดิมที่ต้องรักษา');
+ await expect(page.locator('.office-station')).toHaveCount(7);
+});
