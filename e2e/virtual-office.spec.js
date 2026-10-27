@@ -341,7 +341,7 @@ test('AI command center runs local mock without a network request',async({page})
  const calls=[];
  page.on('request',r=>{if(r.url().includes('/api/ai'))calls.push(r.url())});
  await page.goto('/');
- await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/AI Command Center/}).click();
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/AI Command Center|ศูนย์สั่งงาน AI|ศูนย์ควบคุม AI|ศูนย์บัญชาการ AI/}).click();
  await page.getByRole('button',{name:'ทดลองส่งคำสั่งแบบจำลอง'}).click();
  await expect(page.getByRole('alert')).toContainText('Invalid prompt');
  await page.getByPlaceholder('เขียนคำสั่งโดยไม่ส่งไปยังบริการ AI').fill('ตรวจสอบเอกสาร');
