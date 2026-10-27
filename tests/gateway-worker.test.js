@@ -18,3 +18,14 @@ test('gateway rejects all AI POST requests without forwarding',async()=>{
  assert.deepEqual(await response.json(),{error:'AI gateway disabled',code:'GATEWAY_DISABLED'});
  assert.equal(response.headers.get('cache-control'),'no-store');
 });
+
+test('gateway rejects declared oversized requests without processing the body',async()=>{
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{'content-length':'16385'}}));
+ assert.equal(response.status,413);
+ assert.equal(response.headers.get('x-content-type-options'),'nosniff');
+});
+test('gateway stays disabled for small requests and does not echo prompts',async()=>{
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:'private test prompt'})}));
+ assert.equal(response.status,503);
+ assert.equal((await response.text()).includes('private test prompt'),false);
+});
