@@ -19,3 +19,10 @@ export function removeRoomSlot(storage,id){
  catch{return {ok:false,error:'ลบข้อมูลช่องนี้ไม่สำเร็จ'};}
 }
 export function listRoomSlots(storage){return ROOM_SLOTS.map(slot=>({...slot,occupied:readRoomSlot(storage,slot.id).ok}));}
+
+export function copyRoomSlot(storage,sourceId,targetId,{overwrite=false}={}){
+ if(!validRoomSlot(sourceId)||!validRoomSlot(targetId)||sourceId===targetId)return {ok:false,error:'ช่องต้นทางหรือปลายทางไม่ถูกต้อง'};
+ const source=readRoomSlot(storage,sourceId);if(!source.ok)return source;
+ if(readRoomSlot(storage,targetId).ok&&!overwrite)return {ok:false,error:'ช่องปลายทางมีข้อมูลอยู่แล้ว กรุณายืนยันการแทนที่'};
+ return saveRoomSlot(storage,targetId,source.value);
+}
