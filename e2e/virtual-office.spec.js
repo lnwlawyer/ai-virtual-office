@@ -135,3 +135,17 @@ test('reduced motion preference disables 2D office character animation',async({p
  const animations=await page.locator('.office-room').evaluate(room=>[...room.querySelectorAll('*')].flatMap(el=>el.getAnimations()).filter(a=>a.effect?.getComputedTiming().iterations===Infinity).length);
  expect(animations).toBe(0);
 });
+
+test('history shortcuts do not intercept browser keys without office changes',async({page})=>{
+ await openOffice(page);
+ await expect(page.getByRole('button',{name:/ย้อนกลับ/}).first()).toBeDisabled();
+ await expect(page.getByRole('button',{name:/ทำซ้ำ/}).first()).toBeDisabled();
+ await page.locator('.office-heading h2').click();
+ const result=await page.evaluate(()=>{
+  const undo=new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true});
+  const redo=new KeyboardEvent('keydown',{key:'z',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true});
+  window.dispatchEvent(undo);window.dispatchEvent(redo);
+  return {undoPrevented:undo.defaultPrevented,redoPrevented:redo.defaultPrevented};
+ });
+ expect(result).toEqual({undoPrevented:false,redoPrevented:false});
+});
