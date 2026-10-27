@@ -1,0 +1,48 @@
+name: Compare Virtual Office Screenshots
+on:
+  push:
+    branches: [feature/isometric-pixel-office]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout proposed pixel office
+        uses: actions/checkout@v4
+        with:
+          path: proposed
+      - name: Checkout current main office
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: current
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies and browser
+        run: |
+          cd proposed
+          npm install --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+          cd ../current
+          npm install --no-audit --no-fund
+      - name: Build both versions
+        run: |
+          (cd proposed && npm run build)
+          (cd current && npm run build)
+      - name: Start isolated local previews
+        run: |
+          (cd proposed && npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/proposed-vite.log 2>&1 &)
+          (cd current && npm run preview -- --host 127.0.0.1 --port 4174 > /tmp/current-vite.log 2>&1 &)
+      - name: Capture real browser screenshots
+        run: node proposed/scripts/capture-office-comparison.mjs
+      - name: Upload both screenshots for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: virtual-office-before-after-pr34
+          path: comparison/*.png
+          retention-days: 14
