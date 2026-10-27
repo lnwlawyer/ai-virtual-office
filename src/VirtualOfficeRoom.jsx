@@ -70,7 +70,7 @@ export default function VirtualOfficeRoom(){
   {decorOpen&&<fieldset className="office-decor-controls"><legend>เลือกของตกแต่งในห้อง</legend>{Object.entries(ROOM_DECOR).map(([id,item])=><label key={id}><input type="checkbox" checked={decor.includes(id)} onChange={()=>{const r=toggleDecor(decor,id);if(r.ok)setDecor(r.decor)}}/>{item.symbol} {item.label}</label>)}</fieldset>}
   {error&&<p role="alert" className="office-error">{error}</p>}
   {saveStatus&&<p role="status" className="office-save-status">{saveStatus}</p>}
-  <div className={'office-room office-'+theme+(moving?' is-moving':'')} style={{'--office-motion-duration':motionDuration(motionSpeed),...(background?{backgroundImage:'linear-gradient(#071e2d44,#071e2d33),url("'+background+'")'}:{})}} aria-label="ภาพจำลองห้องทำงานพร้อมพนักงาน 7 ตำแหน่ง">
+  <div className={'office-room office-isometric office-'+theme+(moving?' is-moving':'')} style={{'--office-motion-duration':motionDuration(motionSpeed),...(background?{backgroundImage:'linear-gradient(#071e2d44,#071e2d33),url("'+background+'")'}:{})}} aria-label="ภาพจำลองห้องทำงานพร้อมพนักงาน 7 ตำแหน่ง">
    <div className="office-window" aria-hidden="true"><span>☀</span></div>
    <div className="office-clock" aria-hidden="true">◷</div>
    <div className="office-plant" aria-hidden="true">{decor.includes('plant')?'🌿':''}</div>
@@ -78,7 +78,7 @@ export default function VirtualOfficeRoom(){
    {decor.includes('board')&&<div className="office-decor-board" aria-hidden="true">📋 <span>งานวันนี้</span></div>}
    {decor.includes('coffee')&&<div className="office-decor-coffee" aria-hidden="true">☕</div>}
    {decor.includes('lamp')&&<div className="office-decor-lamp" aria-hidden="true">💡</div>}
-   <div className="office-floor" aria-hidden="true"/>
+   <div className="office-pixel-backwall" aria-hidden="true"><span className="office-pixel-window"/><span className="office-pixel-window"/><span className="office-pixel-window"/></div><div className="office-floor" aria-hidden="true"/>
    <div className="office-desks">
     {layout.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" className={'office-station office-state-'+entry.status+(selected===staff.id?' is-selected':'')} key={staff.id} onClick={()=>setSelected(staff.id)} aria-pressed={selected===staff.id} style={{'--staff-accent':staff.accent,'--avatar-hair':avatarStyle(avatarStyles[staff.id]).hair,'--avatar-skin':avatarStyle(avatarStyles[staff.id]).skin,'--walk-delay':(i%4)*-1.4+'s'}}>
       <span className="office-character" aria-hidden="true"><span className="office-hair"/><span className="office-face"><i/><i/></span><span className="office-torso"/><span className="office-arm office-arm-left"/><span className="office-arm office-arm-right"/><span className="office-leg office-leg-left"/><span className="office-leg office-leg-right"/></span>
@@ -87,8 +87,8 @@ export default function VirtualOfficeRoom(){
       <span className="office-status">{entry.status==='working'?'กำลังทำงาน':entry.status==='walking'?'เดินสำรวจ':'พักงาน'}</span>
      </button>})}
    </div>
-   <div className="office-walking-lane" aria-label={`ทางเดินสำนักงาน มีพนักงานกำลังเดิน ${walkers.length} คน`}>
-    <span className="office-lane-sign" aria-hidden="true">ทางเดินสำนักงาน</span>
+   <div className="office-walking-lane" aria-label={`พื้นที่เดินภายในสำนักงาน มีพนักงานกำลังเดิน ${walkers.length} คน`}>
+    <span className="office-lane-sign" aria-hidden="true">พื้นที่ส่วนกลาง</span>
     {walkers.map((entry,i)=>{const staff=STAFF.find(x=>x.id===entry.id);return <button type="button" key={entry.id} className="office-lane-walker" style={{'--staff-accent':staff.accent,'--avatar-hair':avatarStyle(avatarStyles[staff.id]).hair,'--avatar-skin':avatarStyle(avatarStyles[staff.id]).skin,'--lane-delay':walkingLaneDelay(i),'--lane-duration':walkingLaneDuration(motionSpeed)}} onClick={()=>setSelected(entry.id)} aria-label={`เลือก ${entry.name} ที่กำลังเดิน`} title={entry.name}><span className="office-walker-head" aria-hidden="true"/><span className="office-walker-body" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-left" aria-hidden="true"/><span className="office-walker-arm office-walker-arm-right" aria-hidden="true"/><span className="office-walker-feet" aria-hidden="true"><i/><i/></span></button>})}
    </div>
   </div>
