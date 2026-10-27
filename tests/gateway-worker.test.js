@@ -29,3 +29,14 @@ test('gateway stays disabled for small requests and does not echo prompts',async
  assert.equal(response.status,503);
  assert.equal((await response.text()).includes('private test prompt'),false);
 });
+
+test('gateway rejects malformed content-length headers',async()=>{
+ for(const value of ['invalid','-1','1.5','1e5']){
+  const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{'content-length':value}}));
+  assert.equal(response.status,413);
+ }
+});
+test('gateway remains disabled at the declared 16 KiB boundary',async()=>{
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{'content-length':'16384'}}));
+ assert.equal(response.status,503);
+});
