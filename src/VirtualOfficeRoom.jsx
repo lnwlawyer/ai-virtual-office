@@ -39,7 +39,7 @@ export default function VirtualOfficeRoom(){
  function undoLayout(){setLayoutHistory(h=>undoHistory(h));setSaveStatus('ย้อนกลับการแก้ไขพนักงานแล้ว');}
  function redoLayout(){setLayoutHistory(h=>redoHistory(h));setSaveStatus('ทำซ้ำการแก้ไขพนักงานแล้ว');}
  const [nameDraft,setNameDraft]=useState('');
- useEffect(()=>{setNameDraft(layout.find(x=>x.id===selected)?.name??'')},[selected]);
+ useEffect(()=>{setNameDraft(layout.find(x=>x.id===selected)?.name??'')},[selected,layoutHistory.present]);
  const imageUrl=useRef('');
  useEffect(()=>()=>{if(imageUrl.current)URL.revokeObjectURL(imageUrl.current)},[]);
  function chooseBackground(event){
