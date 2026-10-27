@@ -127,3 +127,11 @@ test('restricted browser storage still renders office and reports failed saves',
  await page.getByRole('button',{name:'บันทึกการจัดห้อง',exact:true}).click();
  await expect(page.locator('.office-save-status')).toContainText('เบราว์เซอร์ไม่อนุญาต');
 });
+
+test('reduced motion preference disables 2D office character animation',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await openOffice(page);
+ await expect(page.locator('.office-station')).toHaveCount(7);
+ const animations=await page.locator('.office-room').evaluate(room=>[...room.querySelectorAll('*')].flatMap(el=>el.getAnimations()).filter(a=>a.effect?.getComputedTiming().iterations===Infinity).length);
+ expect(animations).toBe(0);
+});
