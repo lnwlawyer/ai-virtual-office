@@ -80,3 +80,36 @@
 .office-reset-confirm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border:1px solid #d4bd94;background:#fff8ec;border-radius:12px}
 .office-reset-confirm p{flex:1 1 100%;margin:0;color:#624b2e}
 .office-reset-confirm button{border:1px solid #c4a779;background:#fff;color:#59442d;padding:9px 12px;border-radius:8px}
+
+/* Isometric pixel-office scene: CSS-rendered, no third-party game artwork. */
+.office-isometric{--pixel-ink:#385569;--pixel-wall:#a8dfd4;min-height:680px;padding:0;border:5px solid #40576d;border-radius:5px;background:#8bc3e4;box-shadow:inset 0 0 0 5px #d6f2ff,0 15px 30px #18394a27;image-rendering:pixelated}
+.office-isometric.office-evening{--pixel-wall:#93b6ca;background:#7d9bbd}
+.office-isometric.office-mint{--pixel-wall:#b2e6c4;background:#a6d4c7}
+.office-isometric .office-pixel-backwall{position:absolute;top:4%;left:6%;right:6%;height:37%;background:var(--pixel-wall);border:5px solid var(--pixel-ink);box-shadow:10px 10px 0 #3e627f44;clip-path:polygon(0 0,100% 0,100% 88%,50% 100%,0 88%);display:flex;align-items:flex-start;justify-content:space-around;padding:16px 12px;z-index:0}
+.office-isometric .office-pixel-window{width:22%;height:80px;background:repeating-linear-gradient(90deg,#bcecff 0 26px,#76b4d3 26px 30px);border:5px solid #f1f6e8;box-shadow:5px 5px 0 #49778d}
+.office-isometric .office-window,.office-isometric .office-clock{display:none}
+.office-isometric .office-floor{inset:25% 6% 7%;border:6px solid #587d75;background-color:#b1d4b7;background-image:linear-gradient(45deg,#d4e9c6 25%,transparent 25%,transparent 75%,#d4e9c6 75%),linear-gradient(45deg,#d4e9c6 25%,transparent 25%,transparent 75%,#d4e9c6 75%);background-size:48px 48px;background-position:0 0,24px 24px;clip-path:polygon(50% 0,100% 18%,100% 83%,50% 100%,0 83%,0 18%);box-shadow:inset 0 0 0 8px #9fc2a4}
+.office-isometric .office-desks{z-index:2;position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;padding:210px 11% 110px;align-items:center}
+.office-isometric .office-station{height:152px;border:0;background:transparent;border-radius:0;transform:skewY(-7deg);transition:filter .15s}
+.office-isometric .office-station:hover,.office-isometric .office-station.is-selected{background:transparent;filter:drop-shadow(0 0 5px #ffe15d)}
+.office-isometric .office-station.is-selected{outline:3px dashed #f8cf52;outline-offset:2px}
+.office-isometric .office-character{top:2px;transform:translateX(-50%) scale(.8);transform-origin:top center}
+.office-isometric .office-hair{border-radius:2px;box-shadow:3px 0 0 #273d4a}
+.office-isometric .office-face{border-radius:2px;box-shadow:3px 3px 0 #bf8b6c}
+.office-isometric .office-torso,.office-isometric .office-arm,.office-isometric .office-leg{border-radius:2px}
+.office-isometric .office-desk{top:77px;left:10%;width:80%;transform:skewY(8deg)}
+.office-isometric .office-desk-top{border-radius:0;height:13px;box-shadow:5px 5px 0 #79533e}
+.office-isometric .office-monitor{border-radius:0}
+.office-isometric .office-name{background:#fffdf0;border:2px solid #45667b;border-radius:2px;padding:2px 3px;font-size:11px}
+.office-isometric .office-status{background:#f1f7e9b8;font-size:10px}
+.office-isometric .office-walking-lane{z-index:3;left:11%;right:11%;bottom:10%;height:90px;border:0;background:transparent;overflow:visible;pointer-events:none}
+.office-isometric .office-lane-sign{display:none}
+.office-isometric .office-lane-walker{pointer-events:auto;border-radius:0;filter:drop-shadow(3px 4px 0 #3c6b5b55)}
+.office-isometric .office-walker-head,.office-isometric .office-walker-body,.office-isometric .office-walker-arm,.office-isometric .office-walker-feet i{border-radius:2px}
+.office-isometric.is-moving .office-lane-walker{animation:office-isometric-walk var(--lane-duration,9s) linear var(--lane-delay,0s) infinite alternate}
+@keyframes office-isometric-walk{0%{left:0;top:0;transform:translate(0,-20px)}25%{top:-32px}50%{top:0}75%{top:-32px}100%{left:calc(100% - 44px);top:0;transform:translate(0,-20px)}}
+.office-isometric .office-decor-books,.office-isometric .office-decor-board,.office-isometric .office-decor-coffee,.office-isometric .office-decor-lamp{z-index:1}
+.office-isometric .office-plant{z-index:1}
+@media(max-width:900px){.office-isometric .office-desks{grid-template-columns:repeat(3,minmax(0,1fr));padding:195px 9% 110px}.office-isometric{min-height:790px}}
+@media(max-width:560px){.office-isometric{min-height:1000px}.office-isometric .office-desks{grid-template-columns:repeat(2,minmax(0,1fr));padding:180px 8% 120px;gap:7px}.office-isometric .office-pixel-window{height:54px}.office-isometric .office-floor{inset:20% 2% 5%}.office-isometric .office-walking-lane{left:6%;right:6%;bottom:7%}}
+@media(prefers-reduced-motion:reduce){.office-isometric .office-lane-walker{animation:none!important}}
