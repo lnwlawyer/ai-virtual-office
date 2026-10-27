@@ -37,3 +37,18 @@ jobs:
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Smoke-test published GitHub Pages
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          test -n "$PAGE_URL"
+          curl --fail --silent --show-error --location --retry 6 --retry-delay 5 --retry-all-errors "$PAGE_URL" -o /tmp/office-index.html
+          grep -q 'สำนักงานเสมือน AI' /tmp/office-index.html
+          ASSET_PATH=$(grep -oE '/ai-virtual-office/assets/[^"]+\\.js' /tmp/office-index.html | head -n 1)
+          test -n "$ASSET_PATH"
+          ASSET_URL="https://lnwlawyer.github.io${ASSET_PATH}"
+          curl --fail --silent --show-error --location --retry 6 --retry-delay 5 --retry-all-errors "$ASSET_URL" -o /tmp/office-app.js
+          test -s /tmp/office-app.js
+          echo "GitHub Pages HTML and JavaScript asset are reachable."
