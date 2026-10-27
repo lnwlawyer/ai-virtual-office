@@ -324,3 +324,15 @@ test('portable backup roundtrip restores tasks outputs and knowledge',async({pag
  await nav.getByRole('button',{name:/Knowledge Base|คลังความรู้/}).click();
  await expect(page.getByRole('heading',{name:'ความรู้จากข้อมูลสำรอง'})).toBeVisible();
 });
+
+test('selected office staff can prepare an editable local task draft without auto-creating a task',async({page})=>{
+ await openOffice(page);
+ await page.getByRole('button',{name:'สร้างร่างงานสำหรับพนักงานนี้'}).click();
+ await expect(page.getByRole('heading',{name:/Tasks & Projects|งานและโครงการ/})).toBeVisible();
+ const draft=page.getByRole('textbox',{name:'Task title'});
+ await expect(draft).toHaveValue(/งานสำหรับ ผู้จัดการสำนักงาน:/);
+ await expect(page.getByRole('status').filter({hasText:'0 completed / 0 tasks'})).toBeVisible();
+ await draft.fill('ตรวจสอบงานสำนักงาน');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await expect(page.getByRole('heading',{name:'ตรวจสอบงานสำนักงาน'})).toBeVisible();
+});
