@@ -80,3 +80,18 @@
 .office-reset-confirm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border:1px solid #d4bd94;background:#fff8ec;border-radius:12px}
 .office-reset-confirm p{flex:1 1 100%;margin:0;color:#624b2e}
 .office-reset-confirm button{border:1px solid #c4a779;background:#fff;color:#59442d;padding:9px 12px;border-radius:8px}
+
+/* Compact 2D office controls; intentionally preserve the approved original room artwork. */
+.office-staff-finder{display:flex;align-items:end;flex-wrap:wrap;gap:9px;padding:10px 12px;background:#f2f8fa;border:1px solid #c9dce6;border-radius:12px}
+.office-staff-finder label{display:grid;gap:4px;font-size:13px}
+.office-staff-finder input,.office-staff-finder select,.office-staff-finder button,.office-advanced-toggle{border:1px solid #b9cdd8;background:#fff;color:#17334a;border-radius:8px;padding:8px 10px;min-height:38px}
+.office-staff-finder input{width:min(270px,75vw)}
+.office-staff-finder button:disabled{opacity:.45}
+.office-staff-finder [role="status"]{font-size:13px;padding:9px 2px}
+.office-advanced-toggle{justify-self:start}
+.office-toolbar-advanced{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.office-toolbar-advanced[hidden]{display:none!important}
+.office-station.office-filter-dim{opacity:.3}
+.office-lane-walker.office-filter-dim{opacity:.2}
+.office-station.office-filter-dim.is-selected{opacity:.75}
+@media(max-width:560px){.office-staff-finder label:first-child{flex:1 1 100%}.office-staff-finder input{width:100%}.office-toolbar-advanced{width:100%}}
