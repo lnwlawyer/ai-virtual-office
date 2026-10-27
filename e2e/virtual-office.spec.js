@@ -251,3 +251,21 @@ test('pending slot deletion stays bound to its original selection',async({page})
  await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('1');
  await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeDisabled();
 });
+
+test('reset room preserves saved slots and can restore a saved room',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('ห้องก่อนคืนค่า');
+ await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await page.getByRole('button',{name:'เครื่องมือจัดการห้องเพิ่มเติม'}).click();
+ await page.getByRole('button',{name:'คืนค่าห้องทั้งหมด',exact:true}).click();
+ await page.getByRole('group',{name:'ยืนยันคืนค่าห้องทั้งหมด'}).getByRole('button',{name:'ยืนยันคืนค่าห้อง'}).click();
+ await expect(page.locator('.office-station').first().locator('.office-name')).not.toHaveText('ห้องก่อนคืนค่า');
+ await expect(page.locator('.office-station')).toHaveCount(7);
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ await page.getByRole('button',{name:'เรียกคืนชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ห้องก่อนคืนค่า');
+});
