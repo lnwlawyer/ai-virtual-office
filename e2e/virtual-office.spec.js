@@ -49,3 +49,52 @@ test('bulk change and deletion require confirmation',async({page})=>{
  await expect(page.getByRole('group',{name:'ยืนยันลบข้อมูลห้องที่บันทึก'})).toBeVisible();
  await page.getByRole('group',{name:'ยืนยันลบข้อมูลห้องที่บันทึก'}).getByRole('button',{name:'ยกเลิก'}).click();
 });
+
+test('copying a saved room requires confirmation and preserves source',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('ต้นฉบับ');await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await page.getByRole('button',{name:'คัดลอกชุดนี้'}).click();
+ await expect(page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'})).toContainText('แบบที่ 2');
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยกเลิก'}).click();
+ await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('2');
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeDisabled();
+ await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('1');
+ await page.getByRole('button',{name:'คัดลอกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'}).selectOption('2');
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ await name.fill('แก้ไขชั่วคราว');await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'เรียกคืนชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ต้นฉบับ');
+});
+test('JSON export/import validates confirmation and restores employee data',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('สำนักงานส่งออก');await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'เครื่องมือจัดการห้องเพิ่มเติม'}).click();
+ await page.getByRole('button',{name:'ส่งออก/นำเข้าห้อง'}).click();
+ await page.getByRole('button',{name:'สร้าง JSON ส่งออก'}).click();
+ const json=await page.getByRole('textbox',{name:'ข้อมูลห้อง JSON'}).inputValue();
+ expect(JSON.parse(json).layout[0].name).toBe('สำนักงานส่งออก');
+ await name.fill('ก่อนนำเข้า');await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await expect(page.getByRole('button',{name:'นำเข้าการจัดห้อง'})).toBeDisabled();
+ await page.getByRole('checkbox',{name:/ยืนยันว่าต้องการแทนที่/}).check();
+ await page.getByRole('button',{name:'นำเข้าการจัดห้อง'}).click();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('สำนักงานส่งออก');
+ await page.getByRole('textbox',{name:'ข้อมูลห้อง JSON'}).fill('{invalid');
+ await page.getByRole('checkbox',{name:/ยืนยันว่าต้องการแทนที่/}).check();
+ await page.getByRole('button',{name:'นำเข้าการจัดห้อง'}).click();
+ await expect(page.getByRole('status').filter({hasText:'ไฟล์ JSON ไม่ถูกต้อง'})).toBeVisible();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('สำนักงานส่งออก');
+});
+test('room stays within viewport width and staff controls remain reachable',async({page})=>{
+ await openOffice(page);
+ const width=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,document:document.documentElement.scrollWidth}));
+ expect(width.document).toBeLessThanOrEqual(width.viewport+2);
+ await expect(page.getByRole('button',{name:'เครื่องมือจัดการห้องเพิ่มเติม'})).toBeVisible();
+ await expect(page.getByRole('combobox',{name:'เลือกช่องบันทึกห้อง'})).toBeVisible();
+});
