@@ -149,3 +149,35 @@ test('history shortcuts do not intercept browser keys without office changes',as
  });
  expect(result).toEqual({undoPrevented:false,redoPrevented:false});
 });
+
+test('saved room survives reload but never automatically overwrites the default layout',async({page})=>{
+ await openOffice(page);
+ const name=page.getByRole('textbox',{name:'ชื่อพนักงาน'});
+ await name.fill('บันทึกข้ามรีเฟรช');
+ await page.getByRole('button',{name:'บันทึกชื่อ'}).click();
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ await page.reload();
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/สำนักงานเสมือน|Virtual Office/}).click();
+ await expect(page.locator('.office-station')).toHaveCount(7);
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('ผู้จัดการสำนักงาน');
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ await page.getByRole('button',{name:'เรียกคืนชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.locator('.office-station').first().locator('.office-name')).toHaveText('บันทึกข้ามรีเฟรช');
+});
+
+test('office save slots are isolated between independent browser contexts',async({page,browser})=>{
+ await openOffice(page);
+ await page.getByRole('button',{name:'บันทึกชุดนี้'}).click();
+ await page.getByRole('group',{name:'ยืนยันการจัดการช่องบันทึก'}).getByRole('button',{name:'ยืนยัน'}).click();
+ await expect(page.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeEnabled();
+ const separateContext=await browser.newContext();
+ try{
+  const otherPage=await separateContext.newPage();
+  await openOffice(otherPage);
+  await expect(otherPage.getByRole('button',{name:'เรียกคืนชุดนี้'})).toBeDisabled();
+  await expect(otherPage.locator('.office-station')).toHaveCount(7);
+ }finally{await separateContext.close();}
+});
