@@ -1,0 +1,5 @@
+name = "ai-virtual-office-gateway"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+# Do not add provider secrets or public routes before auth and quotas are reviewed.
