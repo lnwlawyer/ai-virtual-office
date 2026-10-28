@@ -15,10 +15,24 @@ export async function withinBodyLimit(body,limit=MAX_AI_BODY_BYTES){
   }
  }finally{await reader.cancel().catch(()=>{});}
 }
+export function allowedBrowserOrigin(origin,allowedOrigin){
+ if(typeof origin!=='string'||typeof allowedOrigin!=='string')return false;
+ try{
+  const requested=new URL(origin),configured=new URL(allowedOrigin);
+  return requested.protocol==='https:'&&configured.protocol==='https:'&&
+   requested.origin===origin&&configured.origin===allowedOrigin&&
+   requested.origin===configured.origin;
+ }catch{return false;}
+}
 export default {
- async fetch(request) {
+ async fetch(request,env={}) {
   const url=new URL(request.url);
   if(url.pathname!=='/api/ai')return json(404,{error:'Not found'});
+  // Reject browser-origin requests unless a single exact HTTPS origin is configured.
+  // This is a browser policy check, NOT authentication.
+  const origin=request.headers.get('origin');
+  if(origin&&!allowedBrowserOrigin(origin,env.ALLOWED_BROWSER_ORIGIN))return json(403,{error:'Origin not allowed'});
+  if(request.method==='OPTIONS')return json(405,{error:'Method not allowed'},{allow:'POST'});
   if(request.method!=='POST')return json(405,{error:'Method not allowed'},{allow:'POST'});
   const length=request.headers.get('content-length');
   if(length!==null && (!/^[0-9]+$/.test(length)||Number(length)>MAX_AI_BODY_BYTES))return json(413,{error:'Request too large'});
