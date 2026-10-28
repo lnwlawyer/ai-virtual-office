@@ -40,3 +40,20 @@ test('gateway remains disabled at the declared 16 KiB boundary',async()=>{
  const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{'content-length':'16384'}}));
  assert.equal(response.status,503);
 });
+
+test('gateway rejects oversized actual body even without Content-Length',async()=>{
+ const body='x'.repeat(16385);
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',body}));
+ assert.equal(response.status,413);
+ assert.equal(response.headers.get('cache-control'),'no-store');
+});
+test('gateway remains disabled for body at exact limit',async()=>{
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',body:'x'.repeat(16384)}));
+ assert.equal(response.status,503);
+});
+test('gateway rejects multi-chunk oversized body without echoing content',async()=>{
+ const body=new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode('secret '+ 'x'.repeat(8192)));controller.enqueue(new TextEncoder().encode('y'.repeat(8192)));controller.close();}});
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',body,duplex:'half'}));
+ assert.equal(response.status,413);
+ assert.equal((await response.text()).includes('secret'),false);
+});
