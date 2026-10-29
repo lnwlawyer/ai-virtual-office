@@ -12,6 +12,9 @@ export function createFirebaseKeyCache({fetcher,clock=()=>Date.now()}={}){
   async get(){
    const now=clock();
    if(cached&&now<expires)return cached;
+   // Never reuse expired keys when the trusted endpoint is unavailable.
+   cached=null;
+   expires=0;
    if(typeof fetcher!=='function')return null;
    try{
     const response=await fetcher(FIREBASE_CERTS_URL,{method:'GET',redirect:'error'});
@@ -23,7 +26,9 @@ export function createFirebaseKeyCache({fetcher,clock=()=>Date.now()}={}){
     const entries=Object.entries(data);
     if(entries.length===0||entries.length>20||entries.some(([kid,cert])=>!kid||kid.length>256||typeof cert!=='string'||!cert.includes('BEGIN CERTIFICATE')||cert.length>8192))return null;
     cached=Object.freeze({...data});
-    expires=clock()+maxAge*1000;
+    const freshAt=clock();
+    if(!Number.isFinite(freshAt))return null;
+    expires=freshAt+maxAge*1000;
     return cached;
    }catch{return null;}
   },
