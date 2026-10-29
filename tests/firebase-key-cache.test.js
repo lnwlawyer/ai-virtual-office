@@ -33,3 +33,15 @@ test('network failures and malformed responses fail closed',async()=>{
   assert.equal(await cache.get(),null);
  }
 });
+
+test('expired certificates are never returned after refresh failure',async()=>{
+ let now=0,offline=false;
+ const cache=createFirebaseKeyCache({clock:()=>now,fetcher:async()=>{
+  if(offline)throw new Error('offline');
+  return {ok:true,headers:new Headers({'cache-control':'max-age=1'}),json:async()=>({kid:'-----BEGIN CERTIFICATE-----TEST-----END CERTIFICATE-----'})};
+ }});
+ assert.ok(await cache.get());
+ now=1001;offline=true;
+ assert.equal(await cache.get(),null);
+ assert.equal(await cache.get(),null);
+});
