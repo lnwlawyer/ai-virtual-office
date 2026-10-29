@@ -57,3 +57,20 @@ test('gateway rejects multi-chunk oversized body without echoing content',async(
  assert.equal(response.status,413);
  assert.equal((await response.text()).includes('secret'),false);
 });
+
+test('browser origin is denied unless explicitly allowlisted',async()=>{
+ const url='https://example.invalid/api/ai';
+ const blocked=await worker.fetch(new Request(url,{method:'POST',headers:{origin:'https://evil.example'}}));
+ assert.equal(blocked.status,403);
+ const mismatch=await worker.fetch(new Request(url,{method:'POST',headers:{origin:'https://evil.example'}}),{ALLOWED_BROWSER_ORIGIN:'https://lnwlawyer.github.io'});
+ assert.equal(mismatch.status,403);
+ const allowed=await worker.fetch(new Request(url,{method:'POST',headers:{origin:'https://lnwlawyer.github.io'}}),{ALLOWED_BROWSER_ORIGIN:'https://lnwlawyer.github.io'});
+ assert.equal(allowed.status,503);
+ assert.equal(allowed.headers.get('access-control-allow-origin'),null);
+});
+test('origin policy rejects lookalike and non-HTTPS origins',async()=>{
+ for(const origin of ['http://lnwlawyer.github.io','https://lnwlawyer.github.io.evil.example','null']){
+  const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{origin}}),{ALLOWED_BROWSER_ORIGIN:'https://lnwlawyer.github.io'});
+  assert.equal(response.status,403);
+ }
+});
