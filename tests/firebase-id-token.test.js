@@ -34,3 +34,12 @@ test('malformed and missing trusted key input is rejected',async()=>{
  }
  assert.equal(await verifyFirebaseIdToken(token(),{...options,publicKeys:{'test-key':{...jwk,alg:'HS256'}}}),null);
 });
+
+test('trusted imported RSA CryptoKey can verify a Firebase token',async()=>{
+ const key=await crypto.subtle.importKey('jwk',jwk,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+ assert.deepEqual(await verifyFirebaseIdToken(token(),{...options,publicKeys:{'test-key':key}}),{uid:'user-123',issuedAt:now-60,expiresAt:now+3600});
+});
+test('CryptoKey using a different hash fails closed',async()=>{
+ const key=await crypto.subtle.importKey('jwk',jwk,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-384'},false,['verify']);
+ assert.equal(await verifyFirebaseIdToken(token(),{...options,publicKeys:{'test-key':key}}),null);
+});
