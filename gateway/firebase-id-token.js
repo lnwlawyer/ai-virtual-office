@@ -16,12 +16,15 @@ export async function verifyFirebaseIdToken(token,{projectId,publicKeys,now=Math
   const header=parsePart(headerPart),claims=parsePart(payloadPart);
   if(header.alg!=='RS256'||header.typ!=='JWT'||typeof header.kid!=='string'||!Object.hasOwn(publicKeys,header.kid))return null;
   const key=publicKeys[header.kid];
-  if(!key||key.kty!=='RSA'||key.alg!=='RS256'||key.use!=='sig'||!Array.isArray(key.key_ops)||!key.key_ops.includes('verify'))return null;
+  const isCryptoKey=typeof CryptoKey!=='undefined'&&key instanceof CryptoKey;
+  if(isCryptoKey){
+   if(key.type!=='public'||key.algorithm?.name!=='RSASSA-PKCS1-v1_5'||key.algorithm?.hash?.name!=='SHA-256'||!key.usages.includes('verify'))return null;
+  }else if(!key||key.kty!=='RSA'||key.alg!=='RS256'||key.use!=='sig'||!Array.isArray(key.key_ops)||!key.key_ops.includes('verify'))return null;
   if(claims.aud!==projectId||claims.iss!==`https://securetoken.google.com/${projectId}`)return null;
   if(typeof claims.sub!=='string'||!claims.sub||claims.sub.length>128)return null;
   if(!Number.isInteger(now)||!Number.isInteger(claims.exp)||!Number.isInteger(claims.iat)||!Number.isInteger(claims.auth_time))return null;
   if(claims.exp<=now||claims.iat>now||claims.auth_time>now||claims.iat>claims.exp)return null;
-  const imported=await crypto.subtle.importKey('jwk',key,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+  const imported=isCryptoKey?key:await crypto.subtle.importKey('jwk',key,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
   const verified=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',imported,decodePart(signaturePart),new TextEncoder().encode(headerPart+'.'+payloadPart));
   return verified?{uid:claims.sub,issuedAt:claims.iat,expiresAt:claims.exp}:null;
  }catch{return null;}
