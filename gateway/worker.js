@@ -24,6 +24,11 @@ export function allowedBrowserOrigin(origin,allowedOrigin){
    requested.origin===configured.origin;
  }catch{return false;}
 }
+// Deliberately no token verification until a trusted issuer and key validation are implemented.
+export function gatewayAuthConfigured(env){
+ return typeof env?.AUTH_ISSUER==='string'&&env.AUTH_ISSUER.length>0&&
+  typeof env?.AUTH_AUDIENCE==='string'&&env.AUTH_AUDIENCE.length>0;
+}
 export default {
  async fetch(request,env={}) {
   const url=new URL(request.url);
@@ -38,6 +43,9 @@ export default {
   if(length!==null && (!/^[0-9]+$/.test(length)||Number(length)>MAX_AI_BODY_BYTES))return json(413,{error:'Request too large'});
   // The gateway is disabled regardless of payload. Inspect only byte counts, never log or echo the body.
   if(!(await withinBodyLimit(request.body)))return json(413,{error:'Request too large'});
+  // A configured issuer/audience alone does not authenticate anyone.
+  // Keep rejecting every request until verified JWT signatures and claims are implemented.
+  if(!gatewayAuthConfigured(env))return json(503,{error:'AI gateway disabled',code:'GATEWAY_DISABLED'});
   return json(503,{error:'AI gateway disabled',code:'GATEWAY_DISABLED'});
  }
 };

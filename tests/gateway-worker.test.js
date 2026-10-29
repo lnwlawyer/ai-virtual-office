@@ -74,3 +74,9 @@ test('origin policy rejects lookalike and non-HTTPS origins',async()=>{
   assert.equal(response.status,403);
  }
 });
+
+test('auth configuration alone never enables the gateway',async()=>{
+ const response=await worker.fetch(new Request('https://example.invalid/api/ai',{method:'POST',headers:{authorization:'Bearer unverified'}}),{AUTH_ISSUER:'https://issuer.example',AUTH_AUDIENCE:'ai-virtual-office'});
+ assert.equal(response.status,503);
+ assert.equal((await response.json()).code,'GATEWAY_DISABLED');
+});
