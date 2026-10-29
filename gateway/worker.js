@@ -41,11 +41,11 @@ export default {
   if(request.method!=='POST')return json(405,{error:'Method not allowed'},{allow:'POST'});
   const length=request.headers.get('content-length');
   if(length!==null && (!/^[0-9]+$/.test(length)||Number(length)>MAX_AI_BODY_BYTES))return json(413,{error:'Request too large'});
+  // The gateway is disabled regardless of payload. Inspect only byte counts, never log or echo the body.
+  if(!(await withinBodyLimit(request.body)))return json(413,{error:'Request too large'});
   // A configured issuer/audience alone does not authenticate anyone.
   // Keep rejecting every request until verified JWT signatures and claims are implemented.
   if(!gatewayAuthConfigured(env))return json(503,{error:'AI gateway disabled',code:'GATEWAY_DISABLED'});
-  // The gateway is disabled regardless of payload. Inspect only byte counts, never log or echo the body.
-  if(!(await withinBodyLimit(request.body)))return json(413,{error:'Request too large'});
   return json(503,{error:'AI gateway disabled',code:'GATEWAY_DISABLED'});
  }
 };
