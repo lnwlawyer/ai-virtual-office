@@ -360,3 +360,14 @@ test('simulated AI response can be saved to output library without network',asyn
  await expect(page.getByRole('heading',{name:'คลังผลงานภายในเบราว์เซอร์'})).toBeVisible();
  await expect(page.getByText('[ผลจำลอง] รับคำสั่งแล้ว: ทดสอบบันทึกผล')).toBeVisible();
 });
+
+test('selected office staff opens matching simulated AI agent',async({page})=>{
+ await openOffice(page);
+ await page.locator('.office-station').nth(1).click();
+ await page.getByRole('button',{name:'ส่งคำสั่งให้พนักงานนี้ (จำลอง)'}).click();
+ await expect(page.getByRole('heading',{name:/ศูนย์สั่งงาน AI|AI Command Center|ศูนย์ควบคุม AI|ศูนย์บัญชาการ AI/})).toBeVisible();
+ await expect(page.getByRole('combobox',{name:'บทบาท Mock AI'})).toHaveValue('legal');
+ await page.getByRole('textbox',{name:/ร่างคำสั่ง AI/}).fill('สรุปประเด็นกฎหมาย');
+ await page.getByRole('button',{name:'ทดลองส่งคำสั่งแบบจำลอง'}).click();
+ await expect(page.getByRole('status').filter({hasText:'สรุปประเด็นกฎหมาย'})).toBeVisible();
+});
