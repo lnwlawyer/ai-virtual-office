@@ -1,7 +1,11 @@
 // Google Secure Token public keys. This module does not activate the AI gateway.
 export const FIREBASE_CERTS_URL='https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 export function parseMaxAge(cacheControl){
- const match=typeof cacheControl==='string'&&/(?:^|,)\s*max-age=(\d+)(?:,|$)/i.exec(cacheControl);
+ if(typeof cacheControl!=='string')return null;
+ const directives=cacheControl.split(',').map(value=>value.trim());
+ const matches=directives.filter(value=>/^max-age=/i.test(value));
+ if(matches.length!==1||directives.some(value=>/^(?:no-store|no-cache|private)(?:$|=)/i.test(value)))return null;
+ const match=/^max-age=(\d+)$/i.exec(matches[0]);
  if(!match)return null;
  const seconds=Number(match[1]);
  return Number.isSafeInteger(seconds)&&seconds>0&&seconds<=86400?seconds:null;
