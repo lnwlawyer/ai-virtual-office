@@ -349,3 +349,14 @@ test('AI command center runs local mock without a network request',async({page})
  await expect(page.getByRole('status').filter({hasText:'ผลจำลอง · ไม่มีการเรียก API'})).toContainText('ตรวจสอบเอกสาร');
  expect(calls).toHaveLength(0);
 });
+
+test('simulated AI response can be saved to output library without network',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/ศูนย์สั่งงาน AI|AI Command Center|ศูนย์ควบคุม AI|ศูนย์บัญชาการ AI/}).click();
+ await page.getByRole('textbox',{name:/ร่างคำสั่ง AI/}).fill('ทดสอบบันทึกผล');
+ await page.getByRole('button',{name:'ทดลองส่งคำสั่งแบบจำลอง'}).click();
+ await expect(page.getByRole('status').filter({hasText:'[ผลจำลอง]'})).toBeVisible();
+ await page.getByRole('button',{name:'บันทึกผลจำลองลงคลังผลงาน'}).click();
+ await expect(page.getByRole('heading',{name:'คลังผลงานภายในเบราว์เซอร์'})).toBeVisible();
+ await expect(page.getByText('[ผลจำลอง] รับคำสั่งแล้ว: ทดสอบบันทึกผล')).toBeVisible();
+});
