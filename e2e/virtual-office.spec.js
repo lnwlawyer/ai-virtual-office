@@ -399,3 +399,15 @@ test('task board filters by assigned staff and allows reassignment',async({page}
  await page.getByRole('combobox',{name:'กรองงานตามพนักงาน'}).selectOption('writer');
  await expect(page.getByText('งานตรวจสอบเอกสาร')).toBeVisible();
 });
+
+test('office workload reflects assigned task completion',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/งานและโครงการ|Tasks & Projects|จัดการงาน/}).click();
+ await page.getByRole('textbox',{name:'Task title'}).fill('งานติดตามภาระ');
+ await page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'}).selectOption('legal');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/สำนักงานเสมือน|Virtual Office/}).click();
+ await expect(page.locator('.office-station').nth(1).locator('.office-workload')).toHaveText('1 งานค้าง');
+ await page.locator('.office-station').nth(1).click();
+ await expect(page.getByRole('status').filter({hasText:'ภาระงาน: 1 งานค้าง · 0 งานเสร็จ'})).toBeVisible();
+});
