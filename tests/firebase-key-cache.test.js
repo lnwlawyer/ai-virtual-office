@@ -60,3 +60,22 @@ test('invalid timeout configuration fails closed before fetch',async()=>{
  assert.equal(await cache.get(),null);
  assert.equal(called,false);
 });
+
+test('concurrent certificate reads share a single refresh',async()=>{
+ let calls=0,resolveFetch;
+ const fetcher=()=>{calls++;return new Promise(resolve=>{resolveFetch=resolve;});};
+ const cache=createFirebaseKeyCache({fetcher});
+ const first=cache.get(),second=cache.get();
+ assert.equal(calls,1);
+ resolveFetch({ok:true,headers:new Headers({'cache-control':'max-age=30'}),json:async()=>({kid:'-----BEGIN CERTIFICATE-----TEST-----END CERTIFICATE-----'})});
+ assert.deepEqual(await first,await second);
+ assert.equal(calls,1);
+});
+test('clear invalidates a refresh already in flight',async()=>{
+ let resolveFetch;
+ const cache=createFirebaseKeyCache({fetcher:()=>new Promise(resolve=>{resolveFetch=resolve;})});
+ const pending=cache.get();
+ cache.clear();
+ resolveFetch({ok:true,headers:new Headers({'cache-control':'max-age=30'}),json:async()=>({kid:'-----BEGIN CERTIFICATE-----TEST-----END CERTIFICATE-----'})});
+ assert.equal(await pending,null);
+});
