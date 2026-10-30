@@ -371,3 +371,15 @@ test('selected office staff opens matching simulated AI agent',async({page})=>{
  await page.getByRole('button',{name:'ทดลองส่งคำสั่งแบบจำลอง'}).click();
  await expect(page.getByRole('status').filter({hasText:'สรุปประเด็นกฎหมาย'})).toBeVisible();
 });
+
+test('office staff task draft assigns the selected agent',async({page})=>{
+ await openOffice(page);
+ await page.locator('.office-station').nth(1).click();
+ await page.getByRole('button',{name:'สร้างร่างงานสำหรับพนักงานนี้'}).click();
+ await expect(page.getByRole('heading',{name:/งานและโครงการ|Tasks & Projects|จัดการงาน/})).toBeVisible();
+ await expect(page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'})).toHaveValue('legal');
+ await page.getByRole('textbox',{name:'Task title'}).fill('ตรวจสอบเอกสารกฎหมาย');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await expect(page.getByText('ตรวจสอบเอกสารกฎหมาย')).toBeVisible();
+ await expect(page.getByText('ผู้รับผิดชอบ: Legal Research')).toBeVisible();
+});
