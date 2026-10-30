@@ -79,3 +79,10 @@ test('clear invalidates a refresh already in flight',async()=>{
  resolveFetch({ok:true,headers:new Headers({'cache-control':'max-age=30'}),json:async()=>({kid:'-----BEGIN CERTIFICATE-----TEST-----END CERTIFICATE-----'})});
  assert.equal(await pending,null);
 });
+
+test('ambiguous and contradictory cache directives are rejected',()=>{
+ for(const header of ['max-age=10, max-age=20','no-store, max-age=10','private, max-age=10','no-cache, max-age=10','max-age=10junk']){
+  assert.equal(parseMaxAge(header),null);
+ }
+ assert.equal(parseMaxAge('public, max-age=60, must-revalidate'),60);
+});
