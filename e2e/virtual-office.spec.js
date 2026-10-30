@@ -383,3 +383,19 @@ test('office staff task draft assigns the selected agent',async({page})=>{
  await expect(page.getByText('ตรวจสอบเอกสารกฎหมาย')).toBeVisible();
  await expect(page.getByText('ผู้รับผิดชอบ: Legal Research')).toBeVisible();
 });
+
+test('task board filters by assigned staff and allows reassignment',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:/งานและโครงการ|Tasks & Projects|จัดการงาน/}).click();
+ await page.getByRole('textbox',{name:'Task title'}).fill('งานตรวจสอบเอกสาร');
+ await page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'}).selectOption('legal');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await page.getByRole('combobox',{name:'กรองงานตามพนักงาน'}).selectOption('writer');
+ await expect(page.getByText('งานตรวจสอบเอกสาร')).toHaveCount(0);
+ await page.getByRole('combobox',{name:'กรองงานตามพนักงาน'}).selectOption('legal');
+ await expect(page.getByText('งานตรวจสอบเอกสาร')).toBeVisible();
+ await page.getByRole('combobox',{name:'เปลี่ยนผู้รับผิดชอบ งานตรวจสอบเอกสาร'}).selectOption('writer');
+ await expect(page.getByText('งานตรวจสอบเอกสาร')).toHaveCount(0);
+ await page.getByRole('combobox',{name:'กรองงานตามพนักงาน'}).selectOption('writer');
+ await expect(page.getByText('งานตรวจสอบเอกสาร')).toBeVisible();
+});
