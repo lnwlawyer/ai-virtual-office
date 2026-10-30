@@ -45,3 +45,18 @@ test('expired certificates are never returned after refresh failure',async()=>{
  assert.equal(await cache.get(),null);
  assert.equal(await cache.get(),null);
 });
+
+test('certificate fetch uses a bounded abort signal',async()=>{
+ const cache=createFirebaseKeyCache({timeoutMs:250,fetcher:async(url,options)=>{
+  assert.equal(options.signal.aborted,false);
+  assert.equal(typeof options.signal.addEventListener,'function');
+  return {ok:false};
+ }});
+ assert.equal(await cache.get(),null);
+});
+test('invalid timeout configuration fails closed before fetch',async()=>{
+ let called=false;
+ const cache=createFirebaseKeyCache({timeoutMs:60000,fetcher:async()=>{called=true;}});
+ assert.equal(await cache.get(),null);
+ assert.equal(called,false);
+});

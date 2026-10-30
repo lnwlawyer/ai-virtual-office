@@ -6,7 +6,7 @@ export function parseMaxAge(cacheControl){
  const seconds=Number(match[1]);
  return Number.isSafeInteger(seconds)&&seconds>0&&seconds<=86400?seconds:null;
 }
-export function createFirebaseKeyCache({fetcher,clock=()=>Date.now()}={}){
+export function createFirebaseKeyCache({fetcher,clock=()=>Date.now(),timeoutMs=5000}={}){
  let cached=null,expires=0;
  return {
   async get(){
@@ -17,7 +17,8 @@ export function createFirebaseKeyCache({fetcher,clock=()=>Date.now()}={}){
    expires=0;
    if(typeof fetcher!=='function')return null;
    try{
-    const response=await fetcher(FIREBASE_CERTS_URL,{method:'GET',redirect:'error'});
+    if(!Number.isInteger(timeoutMs)||timeoutMs<100||timeoutMs>10000)return null;
+    const response=await fetcher(FIREBASE_CERTS_URL,{method:'GET',redirect:'error',signal:AbortSignal.timeout(timeoutMs)});
     if(!response?.ok)return null;
     const maxAge=parseMaxAge(response.headers.get('cache-control'));
     if(maxAge===null)return null;
