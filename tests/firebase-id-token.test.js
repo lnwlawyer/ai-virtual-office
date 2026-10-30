@@ -44,3 +44,12 @@ test('CryptoKey using a different hash fails closed',async()=>{
  const key=await crypto.subtle.importKey('jwk',rsaMaterial,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-384'},false,['verify']);
  assert.equal(await verifyFirebaseIdToken(token(),{...options,publicKeys:{'test-key':key}}),null);
 });
+
+test('JWT key URLs, embedded keys and critical extensions are rejected',async()=>{
+ for(const header of [{jku:'https://evil.example/keys'},{jwk:{kty:'RSA'}},{x5u:'https://evil.example/cert'},{crit:['exp']}]){
+  assert.equal(await verifyFirebaseIdToken(token({},header),options),null);
+ }
+});
+test('authentication time cannot occur after token issue time',async()=>{
+ assert.equal(await verifyFirebaseIdToken(token({auth_time:now-10,iat:now-60}),options),null);
+});
