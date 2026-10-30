@@ -16,7 +16,7 @@ import React,{useState,useEffect,useRef} from 'react';
 import {STAFF,ROOM_THEMES,validRoomTheme,validateBackgroundFile} from './virtual-office-model.js';
 import './virtual-office.css';
 
-export default function VirtualOfficeRoom({onCreateTaskDraft,onOpenAgentCommand}){
+export default function VirtualOfficeRoom({onCreateTaskDraft,onOpenAgentCommand,tasks=[]}){
  const [theme,setTheme]=useState('daylight');
  const [background,setBackground]=useState('');
  const [error,setError]=useState('');
@@ -136,7 +136,7 @@ export default function VirtualOfficeRoom({onCreateTaskDraft,onOpenAgentCommand}
       <span className="office-character" aria-hidden="true"><span className="office-hair"/><span className="office-face"><i/><i/></span><span className="office-torso"/><span className="office-arm office-arm-left"/><span className="office-arm office-arm-right"/><span className="office-leg office-leg-left"/><span className="office-leg office-leg-right"/></span>
       <span className="office-desk" aria-hidden="true"><span className="office-monitor"/><span className="office-desk-top"/><span className="office-desk-legs"/></span>
       <span className="office-name">{entry.name}</span>
-      <span className="office-status">{entry.status==='working'?'กำลังทำงาน':entry.status==='walking'?'เดินสำรวจ':'พักงาน'}</span>
+      <span className="office-status">{entry.status==='working'?'กำลังทำงาน':entry.status==='walking'?'เดินสำรวจ':'พักงาน'}</span><span className="office-workload">{tasks.filter(t=>t.assignee===entry.id&&t.status!=="done").length} งานค้าง</span>
      </button>})}
    </div>
    <div className="office-walking-lane" aria-label={`ทางเดินสำนักงาน มีพนักงานกำลังเดิน ${walkers.length} คน`}>
@@ -145,7 +145,7 @@ export default function VirtualOfficeRoom({onCreateTaskDraft,onOpenAgentCommand}
    </div>
   </div>
   <div className="office-details" aria-live="polite">
-   <div><h3>{active.name}</h3><p>{person.role}</p><p className="muted">ปรับชื่อและตำแหน่งในห้องได้เฉพาะแท็บนี้ ตัวละครยังไม่ใช่ AI ที่ทำงานจริง</p>{onCreateTaskDraft&&<button type="button" onClick={()=>onCreateTaskDraft({id:active.id,name:active.name,role:person.role})}>สร้างร่างงานสำหรับพนักงานนี้</button>}{onOpenAgentCommand&&<button type="button" onClick={()=>onOpenAgentCommand({id:active.id,name:active.name,role:person.role})}>ส่งคำสั่งให้พนักงานนี้ (จำลอง)</button>}</div>
+   <div><h3>{active.name}</h3><p>{person.role}</p><p className="muted">ปรับชื่อและตำแหน่งในห้องได้เฉพาะแท็บนี้ ตัวละครยังไม่ใช่ AI ที่ทำงานจริง</p><p role="status">ภาระงาน: {tasks.filter(t=>t.assignee===active.id&&t.status!=="done").length} งานค้าง · {tasks.filter(t=>t.assignee===active.id&&t.status==="done").length} งานเสร็จ</p>{onCreateTaskDraft&&<button type="button" onClick={()=>onCreateTaskDraft({id:active.id,name:active.name,role:person.role})}>สร้างร่างงานสำหรับพนักงานนี้</button>}{onOpenAgentCommand&&<button type="button" onClick={()=>onOpenAgentCommand({id:active.id,name:active.name,role:person.role})}>ส่งคำสั่งให้พนักงานนี้ (จำลอง)</button>}</div>
    <div className="office-editor">
     <div className="office-name-editor"><label>ชื่อที่แสดง <input aria-label="ชื่อพนักงาน" maxLength={40} value={nameDraft} onChange={e=>setNameDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();commitName()}if(e.key==='Escape'){e.preventDefault();cancelName()}}}/></label><button type="button" disabled={nameDraft===active.name} onClick={commitName}>บันทึกชื่อ</button><button type="button" disabled={nameDraft===active.name} onClick={cancelName}>ยกเลิก</button></div>
     <label>ลักษณะตัวละคร <select aria-label="รูปแบบตัวการ์ตูนพนักงาน" value={avatarStyles[selected]??'classic'} onChange={e=>{const r=setAvatarStyle(avatarStyles,selected,e.target.value,STAFF);if(r.ok)setAvatarStyles(r.styles)}}>{AVATAR_STYLES.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
