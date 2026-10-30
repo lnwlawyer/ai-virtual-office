@@ -411,3 +411,11 @@ test('office workload reflects assigned task completion',async({page})=>{
  await page.locator('.office-station').nth(1).click();
  await expect(page.getByRole('status').filter({hasText:'ภาระงาน: 1 งานค้าง · 0 งานเสร็จ'})).toBeVisible();
 });
+
+test('office staff opens task board filtered to selected agent',async({page})=>{
+ await openOffice(page);
+ await page.locator('.office-station').nth(1).click();
+ await page.getByRole('button',{name:'ดูงานของพนักงานนี้'}).click();
+ await expect(page.getByRole('combobox',{name:'กรองงานตามพนักงาน'})).toHaveValue('legal');
+ await expect(page.getByRole('heading',{name:/งานและโครงการ|Tasks & Projects|จัดการงาน/})).toBeVisible();
+});
