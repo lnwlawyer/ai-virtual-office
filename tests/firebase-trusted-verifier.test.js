@@ -29,7 +29,7 @@ test('end-to-end trusted certificate verifies a signed Firebase ID token',async(
  const spki=publicKey.export({format:'der',type:'spki'});
  const tbs=seq(der(0xa0,der(0x02,Buffer.from([2]))),der(0x02,Buffer.from([1])),empty,empty,empty,empty,spki);
  const certificate=seq(tbs,empty,der(0x03,Buffer.from([0])));
- const pem='-----BEGIN CERTIFICATE-----\\n'+certificate.toString('base64')+'\\n-----END CERTIFICATE-----';
+ const pem='-----BEGIN CERTIFICATE-----\n'+certificate.toString('base64')+'\n-----END CERTIFICATE-----';
  const projectId='demo-project',now=2000000000;
  const encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
  const header=encode({alg:'RS256',typ:'JWT',kid:'test-key'});
