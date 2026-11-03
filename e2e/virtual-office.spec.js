@@ -484,3 +484,15 @@ test('Messenger conversations and selected staff survive menu navigation',async(
  await expect(page.getByRole('log',{name:'บทสนทนากับ นักวิจัยกฎหมาย'})).toContainText('ติดตามเอกสารชุด ก');
  await expect(page.getByRole('button',{name:/นักวิจัยกฎหมาย/})).toHaveAttribute('aria-pressed','true');
 });
+
+test('Messenger renders classic MSN-inspired blue chrome on desktop and mobile',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const shell=page.getByRole('region',{name:'AI Messenger Dashboard'});
+ await expect(shell).toBeVisible();
+ await expect(page.locator('.msn-title')).toContainText('AI Messenger');
+ await expect(page.locator('.msn-chat-top')).toContainText('ผู้จัดการสำนักงาน');
+ const background=await page.locator('.msn-title').evaluate(el=>getComputedStyle(el).backgroundImage);
+ expect(background).toContain('linear-gradient');
+ await expect(page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/})).toBeVisible();
+});
