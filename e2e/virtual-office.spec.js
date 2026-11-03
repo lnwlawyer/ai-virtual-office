@@ -445,3 +445,18 @@ test('messenger shows assigned task statuses from existing task board',async({pa
  await expect(page.getByText('ตรวจสอบคำร้อง')).toBeVisible();
  await expect(page.getByText('ยังไม่เริ่ม')).toBeVisible();
 });
+
+test('Messenger task status updates shared task board and office workload',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'งานและโครงการ'}).click();
+ await page.getByRole('textbox',{name:'Task title'}).fill('งานเชื่อมสถานะ');
+ await page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'}).selectOption('legal');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await page.getByText('งานของ นักวิจัยกฎหมาย (1 รายการ)').click();
+ await page.getByRole('combobox',{name:'สถานะงาน งานเชื่อมสถานะ'}).selectOption('done');
+ await expect(page.getByText('งานค้าง 0 รายการ')).toBeVisible();
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'งานและโครงการ'}).click();
+ await expect(page.getByRole('status').filter({hasText:'1 completed / 1 tasks'})).toBeVisible();
+});
