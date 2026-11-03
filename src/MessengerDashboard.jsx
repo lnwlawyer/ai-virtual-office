@@ -11,11 +11,9 @@ const groups=[
 ];
 const moods={manager:'พร้อมรับเรื่องทุกแผนก ☕',legal:'ค้นคำตอบจากข้อเท็จจริง 📚',writer:'ร่างงานอยู่ อย่าเพิ่งปิดไฟ ✍️',designer:'ไอเดียใหม่กำลังมา 🎨',analyst:'ตัวเลขไม่เคยโกหก 📊',developer:'แก้บั๊กอีกนิดเดียว 💻',reviewer:'ตรวจให้ครบก่อนส่งงาน ✓'};
 const displayState={online:'ออนไลน์',busy:'กำลังทำงาน',waiting:'รออนุมัติ',offline:'ออฟไลน์'};
-export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateTaskStatus,onSaveOutput}){
- const [selected,setSelected]=useState('manager');
+export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateTaskStatus,onSaveOutput,selected,setSelected,messages,setMessages}){
  const [query,setQuery]=useState('');
  const [draft,setDraft]=useState('');
- const [messages,setMessages]=useState({});
  const [collapsed,setCollapsed]=useState([]);
  const [pending,setPending]=useState(false);
  const staff=STAFF.find(x=>x.id===selected);

@@ -470,3 +470,17 @@ test('Messenger simulated response saves to existing Output Library',async({page
  await expect(page.getByText('คำตอบ Messenger · ผู้จัดการสำนักงาน')).toBeVisible();
  await expect(page.getByText('[ผลจำลอง] รับคำสั่งแล้ว: สรุปงานประจำวัน')).toBeVisible();
 });
+
+test('Messenger conversations and selected staff survive menu navigation',async({page})=>{
+ await page.goto('/');
+ const nav=page.getByRole('navigation',{name:'เมนูหลัก'});
+ await nav.getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง นักวิจัยกฎหมาย/}).fill('ติดตามเอกสารชุด ก');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ นักวิจัยกฎหมาย'})).toContainText('ติดตามเอกสารชุด ก');
+ await nav.getByRole('button',{name:'งานและโครงการ'}).click();
+ await nav.getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ นักวิจัยกฎหมาย'})).toContainText('ติดตามเอกสารชุด ก');
+ await expect(page.getByRole('button',{name:/นักวิจัยกฎหมาย/})).toHaveAttribute('aria-pressed','true');
+});
