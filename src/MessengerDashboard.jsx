@@ -1,0 +1,58 @@
+import React,{useState} from 'react';
+import {STAFF} from './virtual-office-model.js';
+import {createMockAIRequest,mockAIResponse} from './ai-gateway-contract.js';
+import './messenger-dashboard.css';
+
+const groups=[
+ {name:'บริหารและประสานงาน',ids:['manager','reviewer']},
+ {name:'กฎหมายและเอกสาร',ids:['legal','writer']},
+ {name:'สร้างสรรค์และข้อมูล',ids:['designer','analyst']},
+ {name:'พัฒนาระบบ',ids:['developer']}
+];
+const moods={manager:'พร้อมรับเรื่องทุกแผนก ☕',legal:'ค้นคำตอบจากข้อเท็จจริง 📚',writer:'ร่างงานอยู่ อย่าเพิ่งปิดไฟ ✍️',designer:'ไอเดียใหม่กำลังมา 🎨',analyst:'ตัวเลขไม่เคยโกหก 📊',developer:'แก้บั๊กอีกนิดเดียว 💻',reviewer:'ตรวจให้ครบก่อนส่งงาน ✓'};
+const displayState={online:'ออนไลน์',busy:'กำลังทำงาน',waiting:'รออนุมัติ',offline:'ออฟไลน์'};
+export default function MessengerDashboard({tasks=[],onCreateTaskDraft}){
+ const [selected,setSelected]=useState('manager');
+ const [query,setQuery]=useState('');
+ const [draft,setDraft]=useState('');
+ const [messages,setMessages]=useState({});
+ const [collapsed,setCollapsed]=useState([]);
+ const [pending,setPending]=useState(false);
+ const staff=STAFF.find(x=>x.id===selected);
+ const unreadTasks=id=>tasks.filter(t=>t.assignee===id&&t.status!=='done').length;
+ const status=id=>pending&&id===selected?'busy':unreadTasks(id)>0?'busy':'online';
+ function send(event){
+  event.preventDefault();
+  if(pending)return;
+  const request=createMockAIRequest(selected,draft);
+  if(!request.ok)return;
+  const sent={id:crypto.randomUUID(),who:'user',text:request.request.prompt};
+  setMessages(prev=>({...prev,[selected]:[...(prev[selected]||[]),sent]}));
+  setDraft('');
+  setPending(true);
+  const result=mockAIResponse(request.request);
+  const response={id:crypto.randomUUID(),who:'agent',text:result.ok?result.response.content:'ไม่สามารถจำลองคำตอบได้'};
+  setMessages(prev=>({...prev,[selected]:[...(prev[selected]||[]),response]}));
+  setPending(false);
+ }
+ return <section className="msn-shell" aria-label="AI Messenger Dashboard">
+  <aside className="msn-roster">
+   <div className="msn-title"><strong>◈ AI Messenger</strong><small>ทีมสำนักงานเสมือน · โหมดจำลอง</small></div>
+   <label className="msn-search">ค้นหาพนักงาน<input aria-label="ค้นหาพนักงาน Messenger" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ชื่อหรือหน้าที่..."/></label>
+   {groups.map(group=><section className="msn-group" key={group.name}>
+    <button type="button" className="msn-group-toggle" onClick={()=>setCollapsed(prev=>prev.includes(group.name)?prev.filter(x=>x!==group.name):[...prev,group.name])}>{collapsed.includes(group.name)?'▸':'▾'} {group.name} ({group.ids.length})</button>
+    {!collapsed.includes(group.name)&&group.ids.map(id=>{const member=STAFF.find(x=>x.id===id);if(![member.name,member.role,moods[id]].join(' ').toLowerCase().includes(query.toLowerCase()))return null;return <button type="button" key={id} className={'msn-contact'+(selected===id?' selected':'')} onClick={()=>setSelected(id)} aria-pressed={selected===id}>
+      <span className="msn-avatar" aria-hidden="true" style={{background:member.accent}}>{member.name.slice(0,1)}</span><span className="msn-contact-text"><strong>{member.name}</strong><small>{moods[id]}</small></span><span className={'msn-presence '+status(id)} title={displayState[status(id)]}/>{unreadTasks(id)>0&&<span className="msn-badge">{unreadTasks(id)}</span>}
+    </button>})}
+   </section>)}
+  </aside>
+  <div className="msn-chat">
+   <div className="msn-chat-top"><span className="msn-avatar large" style={{background:staff.accent}}>{staff.name.slice(0,1)}</span><div><h2>{staff.name}</h2><p>{staff.role} · {displayState[status(selected)]}</p><small>{moods[selected]}</small></div><span className="msn-simulation">จำลอง · ไม่เชื่อม API</span></div>
+   <div className="msn-chat-toolbar"><span>💬 สนทนา</span><span>งานค้าง {unreadTasks(selected)} รายการ</span><button type="button" onClick={()=>onCreateTaskDraft?.({id:staff.id,name:staff.name})}>มอบหมายงาน</button></div>
+   <div className="msn-conversation" role="log" aria-label={'บทสนทนากับ '+staff.name} aria-live="polite">
+    {(messages[selected]||[]).length===0?<div className="msn-empty"><strong>เริ่มสนทนากับ {staff.name}</strong><p>ส่งคำสั่งทดลองเพื่อดูรูปแบบการทำงานของแชท คำตอบยังเป็นข้อความจำลอง ไม่ใช่ AI จริง</p></div>:(messages[selected]||[]).map(message=><div key={message.id} className={'msn-message '+message.who}><strong>{message.who==='user'?'คุณ':staff.name}</strong><p>{message.text}</p></div>)}
+   </div>
+   <form className="msn-composer" onSubmit={send}><label htmlFor="msn-message-input">ข้อความถึง {staff.name}</label><textarea id="msn-message-input" value={draft} onChange={e=>setDraft(e.target.value)} maxLength={8000} placeholder="พิมพ์คำสั่งถึงพนักงาน..." onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();e.currentTarget.form.requestSubmit();}}}/><div><small>Enter ส่ง · Shift+Enter ขึ้นบรรทัดใหม่ · ข้อมูลอยู่ในแท็บนี้เท่านั้น</small><button type="submit" disabled={!draft.trim()||pending}>ส่งข้อความ</button></div></form>
+  </div>
+ </section>;
+}
