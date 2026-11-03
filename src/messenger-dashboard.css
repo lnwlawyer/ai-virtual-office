@@ -3,3 +3,54 @@
 .msn-task-details{border-bottom:1px solid #d8e3ed;background:#f3f8fd;padding:8px 16px;font-size:12px}.msn-task-details summary{cursor:pointer;font-weight:700;color:#345a7c}.msn-task-list{max-height:150px;overflow:auto}.msn-task-list p{margin:8px 0;overflow-wrap:anywhere}
 
 .msn-task-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #dce6ef}.msn-task-item strong{overflow-wrap:anywhere}.msn-task-item label{white-space:nowrap}.msn-task-item select{margin-left:5px;padding:5px;border:1px solid #b8cadc;border-radius:6px;background:white;color:#24364b}@media(max-width:760px){.msn-task-item{align-items:flex-start;flex-direction:column}}
+
+
+/* Classic MSN Messenger-inspired skin: glossy blue chrome, green presence,
+   soft sky-blue panels and rounded Windows-era controls. Scoped to Messenger. */
+.msn-shell{--msn-blue:#1767b5;--msn-ink:#153c6b;--msn-line:#8db8df;--msn-sky:#d7ecff;--msn-green:#6dbb27;border:2px solid #4b93d0;border-radius:13px;background:#e8f4ff;color:var(--msn-ink);box-shadow:0 0 0 1px #fff inset,0 12px 34px #17518b33;font-family:Tahoma,"Segoe UI",sans-serif}
+.msn-roster{background:linear-gradient(90deg,#f8fdff 0%,#e5f5ff 65%,#d4eaff 100%);border-right:2px solid #93bde2}
+.msn-title{padding:17px 15px 21px;background:linear-gradient(180deg,#c8ecff 0%,#6db8f3 27%,#2584d1 56%,#0964b7 100%);border-bottom:3px solid #77c8fa;text-shadow:0 1px 1px #0c4485;box-shadow:inset 0 2px 0 #ffffffa6;gap:5px}
+.msn-title strong{font-size:21px;letter-spacing:-.5px}
+.msn-title strong:before{content:"●";display:inline-grid;place-items:center;color:#b9ef4e;text-shadow:0 1px #396b12;font-size:19px;margin-right:8px}
+.msn-title small{color:#f2faff;font-size:12px}
+.msn-search{background:linear-gradient(#ffffffa6,#e2f3ff);padding:13px 12px;border-bottom:1px solid #c0ddf5;color:#235788;font-weight:700}
+.msn-search input{border:1px solid #84b1d8;border-radius:15px;box-shadow:inset 0 1px 3px #9ab7d855;padding:9px 12px}
+.msn-group{padding:5px 9px}
+.msn-group-toggle{color:#1763a4;border-bottom:1px solid #c5def4;border-radius:0;font-size:12px}
+.msn-contact{border:1px solid transparent;border-radius:7px;padding:9px 7px}
+.msn-contact:hover{background:linear-gradient(#f9fdff,#d8eeff);border-color:#a8ccef}
+.msn-contact.selected{background:linear-gradient(#fff,#d5eaff 80%,#c4e0ff);border:1px solid #79b4e5;box-shadow:0 1px 2px #5d9ed344,inset 0 1px 0 #fff}
+.msn-avatar{border:2px solid #fff;border-radius:7px;box-shadow:0 0 0 1px #7fb3df,0 2px 4px #25629b44;background-image:linear-gradient(145deg,#ffffff40,transparent 60%)!important}
+.msn-avatar.large{width:58px;height:58px;border-radius:10px}
+.msn-contact-text strong{font-size:13px;color:#154a83}
+.msn-contact-text small{color:#577d9f}
+.msn-presence{width:11px;height:11px;background:radial-gradient(circle at 30% 25%,#d4ff9c,#55b522 65%,#287b15);border:1px solid #438d2d;box-shadow:0 0 0 2px #fff}
+.msn-presence.busy{background:radial-gradient(circle at 30% 25%,#ffe4a5,#e9a62e 70%);border-color:#bd791b}
+.msn-badge{background:linear-gradient(#fff7ce,#ffdc73);border:1px solid #e3b63d;color:#6e4d00;font-weight:700}
+.msn-chat{background:linear-gradient(90deg,#f6fbff,#fff 45%,#f1f9ff)}
+.msn-chat-top{background:linear-gradient(180deg,#d8f1ff 0%,#a4d7ff 40%,#e9f7ff 100%);border-bottom:2px solid #85bde9;box-shadow:inset 0 1px #fff;padding:16px 20px}
+.msn-chat-top h2{color:#125b9f;text-shadow:0 1px #fff;font-size:20px}
+.msn-chat-top p{color:#1d629a}
+.msn-chat-top small{color:#407fae}
+.msn-simulation{background:linear-gradient(#fffde9,#ffedb0);border-color:#e5c867;color:#78570d}
+.msn-chat-toolbar{background:linear-gradient(#fff,#dcefff);border-bottom:1px solid #a5cbe9;color:#2d6291;font-weight:700}
+.msn-shell button:not(.msn-contact):not(.msn-group-toggle){border:1px solid #7eafd6;border-radius:6px;background:linear-gradient(#fff 0%,#ecf8ff 46%,#c1e2fc 49%,#9dcdf4 100%);color:#12578d;box-shadow:inset 0 1px #fff,0 1px 2px #739dc644;font-weight:700;cursor:pointer}
+.msn-shell button:not(.msn-contact):not(.msn-group-toggle):hover{background:linear-gradient(#fff,#d7efff 45%,#8cc8fb);border-color:#438fd0}
+.msn-task-details{background:linear-gradient(#e5f4ff,#f8fcff);border-bottom:1px solid #9fc9eb}
+.msn-task-details summary{color:#1b64a2}
+.msn-task-item select{border-color:#93bfe1;color:#23527c}
+.msn-conversation{background:radial-gradient(ellipse at 85% 0%,#e3f4ff 0%,transparent 52%),#fff;padding:24px}
+.msn-empty{color:#527ca1}
+.msn-empty strong{color:#1264a8;font-size:18px}
+.msn-message{border:1px solid #a9cbed;border-radius:12px 12px 12px 3px;background:linear-gradient(#f5fbff,#dcefff);box-shadow:0 2px 4px #4784b218;padding:12px 14px}
+.msn-message.user{border-color:#9fc977;border-radius:12px 12px 3px 12px;background:linear-gradient(#f8ffed,#e0f5c7)}
+.msn-message strong{color:#1567ad}
+.msn-message.user strong{color:#427a1b}
+.msn-message button{margin-top:10px;padding:5px 9px;font-size:11px}
+.msn-composer{background:linear-gradient(#d6edff,#a9d7fb 55%,#cceaff);border-top:2px solid #82b9e8;box-shadow:inset 0 1px #fff}
+.msn-composer label{font-weight:700;color:#1d6098}
+.msn-composer textarea{border:1px solid #74a9d6;border-radius:6px;background:#fff;box-shadow:inset 0 1px 4px #8bb9da44}
+.msn-composer small{color:#315f85}
+.msn-composer button[type=submit]{min-width:100px;padding:9px 15px}
+.msn-shell :is(button,input,textarea,select):focus-visible{outline:3px solid #f4bf3b;outline-offset:2px}
+@media(max-width:760px){.msn-shell{border-radius:10px}.msn-roster{max-height:265px;border-right:0;border-bottom:2px solid #93bde2}.msn-title{padding:12px 15px}.msn-chat{height:590px}.msn-chat-top h2{font-size:17px}.msn-chat-toolbar{gap:7px;flex-wrap:wrap}.msn-conversation{padding:12px}.msn-message{max-width:94%}.msn-composer>div{flex-wrap:wrap}.msn-composer button[type=submit]{margin-left:auto}}
