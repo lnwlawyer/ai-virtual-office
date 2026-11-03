@@ -1,5 +1,6 @@
 export const MENU_LABELS=Object.freeze({
 "Dashboard":"ภาพรวมระบบ",
+"AI Messenger":"แชทพนักงาน AI",
 "AI Command Center":"ศูนย์สั่งงาน AI",
 "Virtual Office":"สำนักงานเสมือน",
 "Agent Control Room":"ศูนย์ควบคุมเอเจนต์",

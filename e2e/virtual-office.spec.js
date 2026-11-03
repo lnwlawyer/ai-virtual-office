@@ -419,3 +419,16 @@ test('office staff opens task board filtered to selected agent',async({page})=>{
  await expect(page.getByRole('combobox',{name:'กรองงานตามพนักงาน'})).toHaveValue('legal');
  await expect(page.getByRole('heading',{name:/งานและโครงการ|Tasks & Projects|จัดการงาน/})).toBeVisible();
 });
+
+test('MSN-inspired messenger switches staff and keeps conversations separate',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await expect(page.getByRole('region',{name:'AI Messenger Dashboard'})).toBeVisible();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ตรวจสอบงานวันนี้');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ตรวจสอบงานวันนี้');
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ นักวิจัยกฎหมาย'})).not.toContainText('ตรวจสอบงานวันนี้');
+ await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ตรวจสอบงานวันนี้');
+});
