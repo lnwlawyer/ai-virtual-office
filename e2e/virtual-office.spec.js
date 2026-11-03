@@ -432,3 +432,16 @@ test('MSN-inspired messenger switches staff and keeps conversations separate',as
  await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
  await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ตรวจสอบงานวันนี้');
 });
+
+test('messenger shows assigned task statuses from existing task board',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'งานและโครงการ'}).click();
+ await page.getByRole('textbox',{name:'Task title'}).fill('ตรวจสอบคำร้อง');
+ await page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'}).selectOption('legal');
+ await page.getByRole('button',{name:'เพิ่มงาน'}).click();
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await page.getByText('งานของ นักวิจัยกฎหมาย (1 รายการ)').click();
+ await expect(page.getByText('ตรวจสอบคำร้อง')).toBeVisible();
+ await expect(page.getByText('ยังไม่เริ่ม')).toBeVisible();
+});
