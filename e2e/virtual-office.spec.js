@@ -443,7 +443,7 @@ test('messenger shows assigned task statuses from existing task board',async({pa
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  await page.getByText('งานของ นักวิจัยกฎหมาย (1 รายการ)').click();
  await expect(page.getByText('ตรวจสอบคำร้อง')).toBeVisible();
- await expect(page.getByText('ยังไม่เริ่ม')).toBeVisible();
+ await expect(page.getByRole('combobox',{name:'สถานะงาน ตรวจสอบคำร้อง'})).toHaveValue('todo');
 });
 
 test('Messenger task status updates shared task board and office workload',async({page})=>{
