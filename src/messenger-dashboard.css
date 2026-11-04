@@ -58,3 +58,5 @@
 .msn-clear-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:9px 16px;background:#fff5d7;border-bottom:1px solid #e0c27a;color:#6b4b14;font-size:12px}.msn-clear-confirm button{padding:5px 9px}.msn-message-time{font-size:11px;color:#607f9d;margin-left:10px}.msn-message.user .msn-message-time{color:#5b8750}.msn-chat-toolbar button:disabled{opacity:.5;cursor:not-allowed}
 
 .msn-chat-search{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px solid #b6d5ed;background:linear-gradient(#f9fdff,#eaf6ff);color:#285f91;font-size:12px;font-weight:700}.msn-chat-search input{flex:1;min-width:0;padding:7px 10px;border:1px solid #91badb;border-radius:14px;background:white;color:#153c6b}@media(max-width:760px){.msn-chat-search{flex-wrap:wrap}.msn-chat-search input{width:100%;flex-basis:100%}}
+
+.msn-export-notice{margin:0;padding:6px 16px;font-size:12px;color:#1d5c36;background:#e8f8e6;border-bottom:1px solid #b7dfb2}

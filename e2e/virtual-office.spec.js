@@ -533,3 +533,19 @@ test('Messenger search filters only the selected conversation',async({page})=>{
  await search.fill('');
  await expect(log).toContainText('ตรวจสอบเอกสาร');
 });
+
+test('Messenger exports only selected staff transcript as UTF-8 text',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const exportButton=page.getByRole('button',{name:'ส่งออกบทสนทนา TXT'});
+ await expect(exportButton).toBeDisabled();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ทดสอบส่งออกภาษาไทย');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ const downloadPromise=page.waitForEvent('download');
+ await exportButton.click();
+ const download=await downloadPromise;
+ expect(download.suggestedFilename()).toBe('messenger-manager-transcript.txt');
+ await expect(page.getByRole('status').filter({hasText:'เตรียมไฟล์บทสนทนา'})).toBeVisible();
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await expect(exportButton).toBeDisabled();
+});
