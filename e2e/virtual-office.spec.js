@@ -496,3 +496,21 @@ test('Messenger renders classic MSN-inspired blue chrome on desktop and mobile',
  expect(background).toContain('linear-gradient');
  await expect(page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/})).toBeVisible();
 });
+
+test('Messenger can cancel or confirm clearing only selected contact chat',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ข้อความผู้จัดการ');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง นักวิจัยกฎหมาย/}).fill('ข้อความฝ่ายกฎหมาย');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await page.getByRole('button',{name:'ล้างบทสนทนา'}).click();
+ await page.getByRole('button',{name:'ยกเลิก'}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ นักวิจัยกฎหมาย'})).toContainText('ข้อความฝ่ายกฎหมาย');
+ await page.getByRole('button',{name:'ล้างบทสนทนา'}).click();
+ await page.getByRole('button',{name:'ยืนยันล้าง'}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ นักวิจัยกฎหมาย'})).not.toContainText('ข้อความฝ่ายกฎหมาย');
+ await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ข้อความผู้จัดการ');
+});
