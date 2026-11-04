@@ -725,3 +725,21 @@ test('Messenger advanced search shows result counts and resets combined filters'
  await expect(filter).toHaveValue('all');
  await expect(page.getByText('แสดง 2 จาก 2 ข้อความ')).toBeVisible();
 });
+
+test('Messenger batch composer supports prompt append and roster reset',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
+ await draft.fill('บรรทัดแรก');
+ await page.getByRole('checkbox',{name:'เพิ่มต่อท้ายข้อความร่าง'}).check();
+ await page.getByRole('button',{name:'สรุปงานของทีมวันนี้'}).click();
+ await expect(draft).toHaveValue('บรรทัดแรก\nสรุปงานของทีมวันนี้');
+ const rosterSearch=page.getByRole('textbox',{name:'ค้นหาพนักงาน Messenger'});
+ await rosterSearch.fill('ผู้จัดการ');
+ await expect(page.getByText('แสดง 1 จาก 7 คน')).toBeVisible();
+ await page.getByRole('button',{name:'รีเซ็ตตัวกรองพนักงาน'}).click();
+ await expect(rosterSearch).toHaveValue('');
+ await expect(page.getByText('แสดง 7 จาก 7 คน')).toBeVisible();
+ await draft.fill('ก'.repeat(7500));
+ await expect(page.getByRole('status').filter({hasText:'ใกล้ครบขีดจำกัด'})).toBeVisible();
+});
