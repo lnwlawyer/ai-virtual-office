@@ -32,8 +32,10 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  const [exportNotice,setExportNotice]=useState('');
  const [copyNotice,setCopyNotice]=useState('');
  const [confirmClear,setConfirmClear]=useState(false);
+ const [confirmClearAll,setConfirmClearAll]=useState(false);
  const staff=STAFF.find(x=>x.id===selected);
  const conversation=messages[selected]||[];
+ const totalMessages=Object.values(messages).reduce((sum,items)=>sum+(Array.isArray(items)?items.length:0),0);
  const visibleMessages=conversation.filter(message=>(messageFilter==='all'||message.who===messageFilter)&&message.text.toLocaleLowerCase().includes(chatQuery.trim().toLocaleLowerCase()));
  const unreadTasks=id=>tasks.filter(t=>t.assignee===id&&t.status!=='done').length;
  const status=id=>pending&&id===selected?'busy':unreadTasks(id)>0?'busy':'online';
@@ -45,6 +47,14 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   }catch{
    setCopyNotice('ไม่สามารถคัดลอกได้ โปรดตรวจสอบสิทธิ์คลิปบอร์ด');
   }
+ }
+ function exportAllJSON(){
+  if(!totalMessages)return;
+  const data={version:1,source:'AI Virtual Office simulated Messenger',exportedAt:new Date().toISOString(),conversations:STAFF.map(member=>({employee:{id:member.id,name:member.name,role:member.role},messages:(messages[member.id]||[]).map(item=>({who:item.who,text:item.text,time:item.time||null}))}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');link.href=url;link.download='messenger-all-conversations.json';document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+  setExportNotice('เตรียมไฟล์รวมทุกบทสนทนาแล้ว');
  }
  function exportJSON(){
   const items=messages[selected]||[];
@@ -92,7 +102,7 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  }
  return <section className="msn-shell" aria-label="AI Messenger Dashboard">
   <aside className="msn-roster">
-   <div className="msn-title"><strong>◈ AI Messenger</strong><small>ทีมสำนักงานเสมือน · โหมดจำลอง</small></div>
+   <div className="msn-title"><strong>◈ AI Messenger</strong><small>ทีมสำนักงานเสมือน · โหมดจำลอง · {totalMessages} ข้อความ</small></div><div className="msn-roster-tools"><button type="button" disabled={!totalMessages} onClick={exportAllJSON}>ส่งออกทุกบทสนทนา JSON</button><button type="button" disabled={!totalMessages} onClick={()=>setConfirmClearAll(true)}>ล้างทุกบทสนทนา</button></div>{confirmClearAll&&<div className="msn-clear-confirm" role="group" aria-label="ยืนยันล้างทุกบทสนทนา"><span>ล้างบทสนทนาพนักงานทั้ง 7 คน? ไม่สามารถย้อนกลับได้</span><button type="button" onClick={()=>{setMessages({});setConfirmClearAll(false);setConfirmClear(false)}}>ยืนยันล้างทั้งหมด</button><button type="button" onClick={()=>setConfirmClearAll(false)}>ยกเลิกทั้งหมด</button></div>}
    <label className="msn-search">ค้นหาพนักงาน<input aria-label="ค้นหาพนักงาน Messenger" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ชื่อหรือหน้าที่..."/></label>
    {groups.map(group=><section className="msn-group" key={group.name}>
     <button type="button" className="msn-group-toggle" onClick={()=>setCollapsed(prev=>prev.includes(group.name)?prev.filter(x=>x!==group.name):[...prev,group.name])}>{collapsed.includes(group.name)?'▸':'▾'} {group.name} ({group.ids.length})</button>
