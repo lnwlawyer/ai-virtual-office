@@ -743,3 +743,24 @@ test('Messenger batch composer supports prompt append and roster reset',async({p
  await draft.fill('ก'.repeat(7500));
  await expect(page.getByRole('status').filter({hasText:'ใกล้ครบขีดจำกัด'})).toBeVisible();
 });
+
+test('Messenger can reuse a sent prompt and confirm individual message deletion',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
+ await draft.fill('ข้อความสำหรับทดสอบ');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ const log=page.getByRole('log',{name:/บทสนทนากับ/});
+ await expect(log.locator('.msn-message')).toHaveCount(2);
+ await log.getByRole('button',{name:'นำข้อความกลับมาแก้ไข'}).click();
+ await expect(draft).toHaveValue('ข้อความสำหรับทดสอบ');
+ await log.getByRole('button',{name:'ลบข้อความ'}).first().click();
+ await expect(page.getByRole('group',{name:'ยืนยันลบข้อความ'})).toBeVisible();
+ await page.getByRole('button',{name:'ยกเลิกลบข้อความ'}).click();
+ await expect(log.locator('.msn-message')).toHaveCount(2);
+ await log.getByRole('button',{name:'ลบข้อความ'}).first().click();
+ await page.getByRole('button',{name:'ยืนยันลบข้อความ'}).click();
+ await expect(log.locator('.msn-message')).toHaveCount(1);
+ await expect(page.getByText('แสดง 1 จาก 1 ข้อความ')).toBeVisible();
+ await expect(page.getByRole('button',{name:'คัดลอกข้อความที่แสดง'})).toBeEnabled();
+});
