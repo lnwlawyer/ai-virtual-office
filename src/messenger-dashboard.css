@@ -76,3 +76,5 @@
 .msn-sort-contacts{display:flex;gap:7px;align-items:center;padding:6px 10px;background:#edf5fc;font-size:11px;color:#255779}.msn-sort-contacts select{min-width:120px;padding:4px;border:1px solid #a7c7e1;border-radius:4px}.msn-visible-count{display:block;padding:5px 10px;background:#edf5fc;color:#356586;font-size:11px}
 
 .msn-search-case{display:flex;gap:6px;align-items:center;padding:5px 14px;font-size:11px;background:#f4f9fe;color:#245a84}.msn-filter-summary{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;padding:6px 14px;background:#f4f9fe;color:#245a84;font-size:11px;border-bottom:1px solid #d4e4f1}.msn-filter-summary button{padding:4px 8px;font-size:11px}
+
+.msn-roster-reset{margin:4px 10px 8px;padding:5px 8px;font-size:11px}.msn-prompt-append{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#245a84}.msn-draft-warning{font-size:11px;color:#8b4400;display:block;padding:4px 0}.msn-prompt-append input{accent-color:#2976af}
