@@ -704,3 +704,24 @@ test('Messenger roster supports draft-only filter, sorting and visible count',as
  await sort.selectOption('name');
  await expect(sort).toHaveValue('name');
 });
+
+test('Messenger advanced search shows result counts and resets combined filters',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
+ await draft.fill('AlphaCASE');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ const search=page.getByRole('searchbox',{name:'ค้นหาข้อความในบทสนทนา'});
+ const caseSensitive=page.getByRole('checkbox',{name:'ตรงตัวพิมพ์ใหญ่–เล็ก'});
+ await search.fill('alphacase');
+ await expect(page.getByText('แสดง 2 จาก 2 ข้อความ')).toBeVisible();
+ await caseSensitive.check();
+ await expect(page.getByText('แสดง 0 จาก 2 ข้อความ')).toBeVisible();
+ const filter=page.getByRole('combobox',{name:'กรองข้อความตามผู้ส่ง'});
+ await filter.selectOption('user');
+ await page.getByRole('button',{name:'รีเซ็ตตัวกรองข้อความ'}).click();
+ await expect(search).toHaveValue('');
+ await expect(caseSensitive).not.toBeChecked();
+ await expect(filter).toHaveValue('all');
+ await expect(page.getByText('แสดง 2 จาก 2 ข้อความ')).toBeVisible();
+});
