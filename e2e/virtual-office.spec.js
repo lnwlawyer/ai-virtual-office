@@ -549,3 +549,16 @@ test('Messenger exports only selected staff transcript as UTF-8 text',async({pag
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  await expect(exportButton).toBeDisabled();
 });
+
+test('Messenger copies one message without changing conversation',async({page,context})=>{
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('คัดลอกข้อความทดสอบ');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
+ await log.getByRole('button',{name:'คัดลอกข้อความ'}).first().click();
+ await expect(page.getByRole('status').filter({hasText:'คัดลอกข้อความแล้ว'})).toBeVisible();
+ expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('คัดลอกข้อความทดสอบ');
+ await expect(log).toContainText('คัดลอกข้อความทดสอบ');
+});
