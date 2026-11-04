@@ -22,6 +22,7 @@ const quickPromptsByRole={
 const displayState={online:'ออนไลน์',busy:'กำลังทำงาน',waiting:'รออนุมัติ',offline:'ออฟไลน์'};
 export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateTaskStatus,onSaveOutput,selected,setSelected,messages,setMessages}){
  const [query,setQuery]=useState('');
+ const [activeOnly,setActiveOnly]=useState(false);
  const [chatQuery,setChatQuery]=useState('');
  const [messageFilter,setMessageFilter]=useState('all');
  const [drafts,setDrafts]=useState({});
@@ -103,11 +104,11 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  return <section className="msn-shell" aria-label="AI Messenger Dashboard">
   <aside className="msn-roster">
    <div className="msn-title"><strong>◈ AI Messenger</strong><small>ทีมสำนักงานเสมือน · โหมดจำลอง · {totalMessages} ข้อความ</small></div><div className="msn-roster-tools"><button type="button" disabled={!totalMessages} onClick={exportAllJSON}>ส่งออกทุกบทสนทนา JSON</button><button type="button" disabled={!totalMessages} onClick={()=>setConfirmClearAll(true)}>ล้างทุกบทสนทนา</button></div>{confirmClearAll&&<div className="msn-clear-confirm" role="group" aria-label="ยืนยันล้างทุกบทสนทนา"><span>ล้างบทสนทนาพนักงานทั้ง 7 คน? ไม่สามารถย้อนกลับได้</span><button type="button" onClick={()=>{setMessages({});setConfirmClearAll(false);setConfirmClear(false)}}>ยืนยันล้างทั้งหมด</button><button type="button" onClick={()=>setConfirmClearAll(false)}>ยกเลิกทั้งหมด</button></div>}
-   <label className="msn-search">ค้นหาพนักงาน<input aria-label="ค้นหาพนักงาน Messenger" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ชื่อหรือหน้าที่..."/></label>
+   <label className="msn-search">ค้นหาพนักงาน<input aria-label="ค้นหาพนักงาน Messenger" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ชื่อหรือหน้าที่..."/></label><label className="msn-active-only"><input type="checkbox" checked={activeOnly} onChange={e=>setActiveOnly(e.target.checked)}/> แสดงเฉพาะพนักงานที่มีบทสนทนา</label>
    {groups.map(group=><section className="msn-group" key={group.name}>
     <button type="button" className="msn-group-toggle" onClick={()=>setCollapsed(prev=>prev.includes(group.name)?prev.filter(x=>x!==group.name):[...prev,group.name])}>{collapsed.includes(group.name)?'▸':'▾'} {group.name} ({group.ids.length})</button>
-    {!collapsed.includes(group.name)&&group.ids.map(id=>{const member=STAFF.find(x=>x.id===id);if(![member.name,member.role,moods[id]].join(' ').toLowerCase().includes(query.toLowerCase()))return null;return <button type="button" key={id} className={'msn-contact'+(selected===id?' selected':'')} onClick={()=>{setSelected(id);setConfirmClear(false);setChatQuery('');setMessageFilter('all');setExportNotice('');setCopyNotice('')}} aria-pressed={selected===id}>
-      <span className="msn-avatar" aria-hidden="true" style={{background:member.accent}}>{member.name.slice(0,1)}</span><span className="msn-contact-text"><strong>{member.name}</strong><small>{moods[id]}</small></span><span className={'msn-presence '+status(id)} title={displayState[status(id)]}/>{unreadTasks(id)>0&&<span className="msn-badge">{unreadTasks(id)}</span>}
+    {!collapsed.includes(group.name)&&group.ids.map(id=>{const member=STAFF.find(x=>x.id===id);if(![member.name,member.role,moods[id]].join(' ').toLowerCase().includes(query.toLowerCase())||(activeOnly&&!(messages[id]||[]).length))return null;return <button type="button" key={id} className={'msn-contact'+(selected===id?' selected':'')} onClick={()=>{setSelected(id);setConfirmClear(false);setChatQuery('');setMessageFilter('all');setExportNotice('');setCopyNotice('')}} aria-pressed={selected===id}>
+      <span className="msn-avatar" aria-hidden="true" style={{background:member.accent}}>{member.name.slice(0,1)}</span><span className="msn-contact-text"><strong>{member.name}</strong><small>{moods[id]}</small></span><span className={'msn-presence '+status(id)} title={displayState[status(id)]}/>{(messages[id]||[]).length>0&&<span className="msn-chat-count" title="จำนวนข้อความ">{(messages[id]||[]).length}</span>}{(drafts[id]||'').trim()&&<span className="msn-draft-marker" title="มีข้อความร่าง">ร่าง</span>}{unreadTasks(id)>0&&<span className="msn-badge">{unreadTasks(id)}</span>}
     </button>})}
    </section>)}
   </aside>
