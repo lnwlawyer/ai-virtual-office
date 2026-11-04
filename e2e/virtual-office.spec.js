@@ -566,11 +566,22 @@ test('Messenger copies one message without changing conversation',async({page,co
 test('Messenger quick command fills draft without sending until confirmed',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
- await page.getByRole('button',{name:'ช่วยวางแผนงานวันนี้'}).click();
+ await page.getByRole('button',{name:'จัดลำดับความสำคัญของงาน'}).click();
  const input=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
- await expect(input).toHaveValue('ช่วยวางแผนงานวันนี้');
+ await expect(input).toHaveValue('จัดลำดับความสำคัญของงาน');
  const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
  await expect(log).not.toContainText('รับคำสั่งแล้ว');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
- await expect(log).toContainText('ช่วยวางแผนงานวันนี้');
+ await expect(log).toContainText('จัดลำดับความสำคัญของงาน');
+});
+
+test('Messenger quick commands change when selecting a different staff role',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await expect(page.getByRole('button',{name:'สรุปงานของทีมวันนี้'})).toBeVisible();
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await expect(page.getByRole('button',{name:'วิเคราะห์ประเด็นข้อกฎหมาย'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'สรุปงานของทีมวันนี้'})).toHaveCount(0);
+ await page.getByRole('button',{name:'วิเคราะห์ประเด็นข้อกฎหมาย'}).click();
+ await expect(page.getByRole('textbox',{name:/ข้อความถึง นักวิจัยกฎหมาย/})).toHaveValue('วิเคราะห์ประเด็นข้อกฎหมาย');
 });
