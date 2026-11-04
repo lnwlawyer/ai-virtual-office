@@ -666,3 +666,21 @@ test('Messenger exports all chats and confirms before clearing all',async({page}
  await expect(exportAll).toBeDisabled();
  await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('เริ่มสนทนากับ');
 });
+
+test('Messenger roster shows draft and chat badges and filters active conversations',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const manager=page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).first();
+ const legal=page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).first();
+ const activeOnly=page.getByRole('checkbox',{name:'แสดงเฉพาะพนักงานที่มีบทสนทนา'});
+ await expect(activeOnly).not.toBeChecked();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ร่างยังไม่ส่ง');
+ await expect(manager).toContainText('ร่าง');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(manager.locator('.msn-chat-count')).toHaveText('2');
+ await activeOnly.check();
+ await expect(manager).toBeVisible();
+ await expect(legal).toHaveCount(0);
+ await activeOnly.uncheck();
+ await expect(legal).toBeVisible();
+});
