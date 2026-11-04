@@ -54,3 +54,5 @@
 .msn-composer button[type=submit]{min-width:100px;padding:9px 15px}
 .msn-shell :is(button,input,textarea,select):focus-visible{outline:3px solid #f4bf3b;outline-offset:2px}
 @media(max-width:760px){.msn-shell{border-radius:10px}.msn-roster{max-height:265px;border-right:0;border-bottom:2px solid #93bde2}.msn-title{padding:12px 15px}.msn-chat{height:590px}.msn-chat-top h2{font-size:17px}.msn-chat-toolbar{gap:7px;flex-wrap:wrap}.msn-conversation{padding:12px}.msn-message{max-width:94%}.msn-composer>div{flex-wrap:wrap}.msn-composer button[type=submit]{margin-left:auto}}
+
+.msn-clear-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:9px 16px;background:#fff5d7;border-bottom:1px solid #e0c27a;color:#6b4b14;font-size:12px}.msn-clear-confirm button{padding:5px 9px}.msn-message-time{font-size:11px;color:#607f9d;margin-left:10px}.msn-message.user .msn-message-time{color:#5b8750}.msn-chat-toolbar button:disabled{opacity:.5;cursor:not-allowed}
