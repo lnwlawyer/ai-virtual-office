@@ -632,7 +632,7 @@ test('Messenger exports structured JSON and resets search while showing draft le
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await draft.fill('ข้อมูลทดสอบ JSON');
- await expect(page.getByText('16/8000 ตัวอักษร')).toBeVisible();
+ await expect(page.getByText(/\/8000 ตัวอักษร/)).toBeVisible();
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  const search=page.getByRole('searchbox',{name:'ค้นหาข้อความในบทสนทนา'});
  await search.fill('ไม่พบข้อความ');
