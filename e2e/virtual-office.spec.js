@@ -684,3 +684,23 @@ test('Messenger roster shows draft and chat badges and filters active conversati
  await activeOnly.uncheck();
  await expect(legal).toBeVisible();
 });
+
+test('Messenger roster supports draft-only filter, sorting and visible count',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await expect(page.getByText('แสดง 7 จาก 7 คน')).toBeVisible();
+ const onlyDrafts=page.getByRole('checkbox',{name:'เฉพาะพนักงานที่มีข้อความร่าง'});
+ await onlyDrafts.check();
+ await expect(page.getByText('แสดง 0 จาก 7 คน')).toBeVisible();
+ await onlyDrafts.uncheck();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ร่างเพื่อกรองรายชื่อ');
+ await onlyDrafts.check();
+ await expect(page.getByText('แสดง 1 จาก 7 คน')).toBeVisible();
+ await expect(page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).first()).toBeVisible();
+ await onlyDrafts.uncheck();
+ const sort=page.getByRole('combobox',{name:'เรียงรายชื่อพนักงาน'});
+ await sort.selectOption('messages');
+ await expect(sort).toHaveValue('messages');
+ await sort.selectOption('name');
+ await expect(sort).toHaveValue('name');
+});

@@ -23,6 +23,8 @@ const displayState={online:'ออนไลน์',busy:'กำลังทำ�
 export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateTaskStatus,onSaveOutput,selected,setSelected,messages,setMessages}){
  const [query,setQuery]=useState('');
  const [activeOnly,setActiveOnly]=useState(false);
+ const [draftOnly,setDraftOnly]=useState(false);
+ const [sortContacts,setSortContacts]=useState('default');
  const [chatQuery,setChatQuery]=useState('');
  const [messageFilter,setMessageFilter]=useState('all');
  const [drafts,setDrafts]=useState({});
@@ -37,6 +39,7 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  const staff=STAFF.find(x=>x.id===selected);
  const conversation=messages[selected]||[];
  const totalMessages=Object.values(messages).reduce((sum,items)=>sum+(Array.isArray(items)?items.length:0),0);
+ const visibleContactCount=STAFF.filter(member=>(!activeOnly||(messages[member.id]||[]).length>0)&&(!draftOnly||(drafts[member.id]||'').trim())&&[member.name,member.role,moods[member.id]].join(' ').toLowerCase().includes(query.toLowerCase())).length;
  const visibleMessages=conversation.filter(message=>(messageFilter==='all'||message.who===messageFilter)&&message.text.toLocaleLowerCase().includes(chatQuery.trim().toLocaleLowerCase()));
  const unreadTasks=id=>tasks.filter(t=>t.assignee===id&&t.status!=='done').length;
  const status=id=>pending&&id===selected?'busy':unreadTasks(id)>0?'busy':'online';
@@ -104,10 +107,10 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  return <section className="msn-shell" aria-label="AI Messenger Dashboard">
   <aside className="msn-roster">
    <div className="msn-title"><strong>◈ AI Messenger</strong><small>ทีมสำนักงานเสมือน · โหมดจำลอง · {totalMessages} ข้อความ</small></div><div className="msn-roster-tools"><button type="button" disabled={!totalMessages} onClick={exportAllJSON}>ส่งออกทุกบทสนทนา JSON</button><button type="button" disabled={!totalMessages} onClick={()=>setConfirmClearAll(true)}>ล้างทุกบทสนทนา</button></div>{confirmClearAll&&<div className="msn-clear-confirm" role="group" aria-label="ยืนยันล้างทุกบทสนทนา"><span>ล้างบทสนทนาพนักงานทั้ง 7 คน? ไม่สามารถย้อนกลับได้</span><button type="button" onClick={()=>{setMessages({});setConfirmClearAll(false);setConfirmClear(false)}}>ยืนยันล้างทั้งหมด</button><button type="button" onClick={()=>setConfirmClearAll(false)}>ยกเลิกทั้งหมด</button></div>}
-   <label className="msn-search">ค้นหาพนักงาน<input aria-label="ค้นหาพนักงาน Messenger" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ชื่อหรือหน้าที่..."/></label><label className="msn-active-only"><input type="checkbox" checked={activeOnly} onChange={e=>setActiveOnly(e.target.checked)}/> แสดงเฉพาะพนักงานที่มีบทสนทนา</label>
+   <label className="msn-search">ค้นหาพนักงาน<input aria-label="ค้นหาพนักงาน Messenger" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ชื่อหรือหน้าที่..."/></label><label className="msn-active-only"><input type="checkbox" checked={activeOnly} onChange={e=>setActiveOnly(e.target.checked)}/> แสดงเฉพาะพนักงานที่มีบทสนทนา</label><label className="msn-active-only"><input type="checkbox" checked={draftOnly} onChange={e=>setDraftOnly(e.target.checked)}/> เฉพาะพนักงานที่มีข้อความร่าง</label><label className="msn-sort-contacts">เรียงภายในแผนก <select aria-label="เรียงรายชื่อพนักงาน" value={sortContacts} onChange={e=>setSortContacts(e.target.value)}><option value="default">ตามแผนก</option><option value="messages">ข้อความมากไปน้อย</option><option value="name">ตามชื่อ</option></select></label><small className="msn-visible-count">แสดง {visibleContactCount} จาก {STAFF.length} คน</small>
    {groups.map(group=><section className="msn-group" key={group.name}>
     <button type="button" className="msn-group-toggle" onClick={()=>setCollapsed(prev=>prev.includes(group.name)?prev.filter(x=>x!==group.name):[...prev,group.name])}>{collapsed.includes(group.name)?'▸':'▾'} {group.name} ({group.ids.length})</button>
-    {!collapsed.includes(group.name)&&group.ids.map(id=>{const member=STAFF.find(x=>x.id===id);if(![member.name,member.role,moods[id]].join(' ').toLowerCase().includes(query.toLowerCase())||(activeOnly&&!(messages[id]||[]).length))return null;return <button type="button" key={id} className={'msn-contact'+(selected===id?' selected':'')} onClick={()=>{setSelected(id);setConfirmClear(false);setChatQuery('');setMessageFilter('all');setExportNotice('');setCopyNotice('')}} aria-pressed={selected===id}>
+    {!collapsed.includes(group.name)&&[...group.ids].sort((a,b)=>sortContacts==='messages'?(messages[b]||[]).length-(messages[a]||[]).length:sortContacts==='name'?STAFF.find(x=>x.id===a).name.localeCompare(STAFF.find(x=>x.id===b).name,'th'):0).map(id=>{const member=STAFF.find(x=>x.id===id);if(![member.name,member.role,moods[id]].join(' ').toLowerCase().includes(query.toLowerCase())||(activeOnly&&!(messages[id]||[]).length)||(draftOnly&&!(drafts[id]||'').trim()))return null;return <button type="button" key={id} className={'msn-contact'+(selected===id?' selected':'')} onClick={()=>{setSelected(id);setConfirmClear(false);setChatQuery('');setMessageFilter('all');setExportNotice('');setCopyNotice('')}} aria-pressed={selected===id}>
       <span className="msn-avatar" aria-hidden="true" style={{background:member.accent}}>{member.name.slice(0,1)}</span><span className="msn-contact-text"><strong>{member.name}</strong><small>{moods[id]}</small></span><span className={'msn-presence '+status(id)} title={displayState[status(id)]}/>{(messages[id]||[]).length>0&&<span className="msn-chat-count" title="จำนวนข้อความ">{(messages[id]||[]).length}</span>}{(drafts[id]||'').trim()&&<span className="msn-draft-marker" title="มีข้อความร่าง">ร่าง</span>}{unreadTasks(id)>0&&<span className="msn-badge">{unreadTasks(id)}</span>}
     </button>})}
    </section>)}
