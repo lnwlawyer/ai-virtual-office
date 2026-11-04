@@ -514,3 +514,22 @@ test('Messenger can cancel or confirm clearing only selected contact chat',async
  await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
  await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ข้อความผู้จัดการ');
 });
+
+test('Messenger search filters only the selected conversation',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const input=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
+ await input.fill('รายงานประจำเดือน');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await input.fill('ตรวจสอบเอกสาร');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ const search=page.getByRole('searchbox',{name:'ค้นหาข้อความในบทสนทนา'});
+ await search.fill('รายงานประจำเดือน');
+ const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
+ await expect(log).toContainText('รายงานประจำเดือน');
+ await expect(log).not.toContainText('ตรวจสอบเอกสาร');
+ await search.fill('ไม่พบแน่นอน');
+ await expect(log).toContainText('ไม่พบข้อความที่ค้นหา');
+ await search.fill('');
+ await expect(log).toContainText('ตรวจสอบเอกสาร');
+});
