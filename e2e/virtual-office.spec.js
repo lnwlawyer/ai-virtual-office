@@ -603,3 +603,26 @@ test('Messenger keeps unsent drafts separately for each staff member',async({pag
  await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
  await expect(page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/})).toHaveValue('ร่างสำหรับผู้จัดการ');
 });
+
+test('Messenger productivity controls filter senders and clear only current draft',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
+ const clear=page.getByRole('button',{name:'ล้างข้อความร่าง'});
+ await expect(clear).toBeDisabled();
+ await draft.fill('ข้อความทดสอบการกรอง');
+ await expect(clear).toBeEnabled();
+ await clear.click();
+ await expect(draft).toHaveValue('');
+ await draft.fill('ข้อความทดสอบการกรอง');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
+ await expect(page.getByText('สนทนา (2 ข้อความ)')).toBeVisible();
+ const filter=page.getByRole('combobox',{name:'กรองข้อความตามผู้ส่ง'});
+ await filter.selectOption('user');
+ await expect(log.getByRole('button',{name:'คัดลอกข้อความ'})).toHaveCount(1);
+ await filter.selectOption('agent');
+ await expect(log.getByRole('button',{name:'คัดลอกข้อความ'})).toHaveCount(1);
+ await filter.selectOption('all');
+ await expect(log.getByRole('button',{name:'คัดลอกข้อความ'})).toHaveCount(2);
+});
