@@ -644,3 +644,25 @@ test('Messenger exports structured JSON and resets search while showing draft le
  expect(download.suggestedFilename()).toBe('messenger-manager-transcript.json');
  await expect(page.getByRole('status').filter({hasText:'เตรียมไฟล์ JSON'})).toBeVisible();
 });
+
+test('Messenger exports all chats and confirms before clearing all',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const exportAll=page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'});
+ const clearAll=page.getByRole('button',{name:'ล้างทุกบทสนทนา'});
+ await expect(exportAll).toBeDisabled();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ทดสอบรวมข้อความ');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(exportAll).toBeEnabled();
+ const downloadPromise=page.waitForEvent('download');
+ await exportAll.click();
+ expect((await downloadPromise).suggestedFilename()).toBe('messenger-all-conversations.json');
+ await clearAll.click();
+ await expect(page.getByRole('group',{name:'ยืนยันล้างทุกบทสนทนา'})).toBeVisible();
+ await page.getByRole('button',{name:'ยกเลิกทั้งหมด'}).click();
+ await expect(exportAll).toBeEnabled();
+ await clearAll.click();
+ await page.getByRole('button',{name:'ยืนยันล้างทั้งหมด'}).click();
+ await expect(exportAll).toBeDisabled();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('เริ่มสนทนากับ');
+});
