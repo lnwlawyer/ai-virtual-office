@@ -585,3 +585,21 @@ test('Messenger quick commands change when selecting a different staff role',asy
  await page.getByRole('button',{name:'วิเคราะห์ประเด็นข้อกฎหมาย'}).click();
  await expect(page.getByRole('textbox',{name:/ข้อความถึง นักวิจัยกฎหมาย/})).toHaveValue('วิเคราะห์ประเด็นข้อกฎหมาย');
 });
+
+test('Messenger keeps unsent drafts separately for each staff member',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ร่างสำหรับผู้จัดการ');
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ const legalDraft=page.getByRole('textbox',{name:/ข้อความถึง นักวิจัยกฎหมาย/});
+ await expect(legalDraft).toHaveValue('');
+ await legalDraft.fill('ร่างสำหรับนักกฎหมาย');
+ await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
+ await expect(page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/})).toHaveValue('ร่างสำหรับผู้จัดการ');
+ await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
+ await expect(legalDraft).toHaveValue('ร่างสำหรับนักกฎหมาย');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(legalDraft).toHaveValue('');
+ await page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).click();
+ await expect(page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/})).toHaveValue('ร่างสำหรับผู้จัดการ');
+});

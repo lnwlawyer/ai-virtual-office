@@ -23,7 +23,9 @@ const displayState={online:'ออนไลน์',busy:'กำลังทำ�
 export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateTaskStatus,onSaveOutput,selected,setSelected,messages,setMessages}){
  const [query,setQuery]=useState('');
  const [chatQuery,setChatQuery]=useState('');
- const [draft,setDraft]=useState('');
+ const [drafts,setDrafts]=useState({});
+ const draft=drafts[selected]||'';
+ const setDraft=value=>setDrafts(prev=>({...prev,[selected]:value}));
  const [collapsed,setCollapsed]=useState([]);
  const [pending,setPending]=useState(false);
  const [exportNotice,setExportNotice]=useState('');
