@@ -562,3 +562,15 @@ test('Messenger copies one message without changing conversation',async({page,co
  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('คัดลอกข้อความทดสอบ');
  await expect(log).toContainText('คัดลอกข้อความทดสอบ');
 });
+
+test('Messenger quick command fills draft without sending until confirmed',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('button',{name:'ช่วยวางแผนงานวันนี้'}).click();
+ const input=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
+ await expect(input).toHaveValue('ช่วยวางแผนงานวันนี้');
+ const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
+ await expect(log).not.toContainText('รับคำสั่งแล้ว');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(log).toContainText('ช่วยวางแผนงานวันนี้');
+});
