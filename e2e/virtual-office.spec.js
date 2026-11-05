@@ -678,6 +678,7 @@ test('Messenger exports all chats and confirms before clearing all',async({page}
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
+ await page.locator('.msn-roster-management > summary').click();
  const exportAll=page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'});
  const clearAll=page.getByRole('button',{name:'ล้างทุกบทสนทนา'});
  await expect(exportAll).toBeDisabled();
