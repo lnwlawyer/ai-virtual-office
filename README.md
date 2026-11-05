@@ -103,3 +103,7 @@ With Ollama already running on Windows 11, update the repository and run `npm.cm
 ## Local multi-agent Messenger (PR #118)
 
 Run `npm.cmd run chat:local` after `git pull origin main`, then open `http://127.0.0.1:8787/`. Choose among seven Thai AI employee roles. Each role has its own **in-memory** conversation history, with a short recent context sent to the local Ollama model. Chat histories are cleared when the server page is reloaded and are never saved to disk or sent to cloud services. The compact interface uses a nostalgic MSN-style sidebar and message bubbles. The agents are role-specific text assistants, **not** independent Windows automation agents.
+
+## Local Messenger conversation retention (PR #119)
+
+Per-agent text conversations are stored in this browser's localStorage under `ai-virtual-office-local-chats-v1`, capped at the most recent 100 messages per role. Reloading the page restores chats; using the clear button deletes the selected role's conversation. Storage stays in the local browser profile (not the cloud or the Bridge), so avoid entering sensitive information on shared computers. Browser storage clearing, private mode, or switching profiles may erase history. This milestone does not yet provide privileged Bridge job submission or Windows command execution.
