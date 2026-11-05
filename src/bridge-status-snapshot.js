@@ -1,0 +1,9 @@
+import {AI_GATEWAY_ROLES} from './ai-gateway-contract.js';
+const STATUSES=['awaiting_approval','approved','rejected','completed','failed'];
+export function validateBridgeStatusSnapshot(value){
+ if(!value||typeof value!=='object'||value.version!==1||value.mode!=='local_manual_only'||value.connectedDevices!==0||!value.totals||!Array.isArray(value.agents)||!Array.isArray(value.recent)||value.recent.length>20)return {ok:false,error:'รูปแบบรายงานสถานะไม่ถูกต้อง'};
+ if(value.agents.length!==AI_GATEWAY_ROLES.length||value.agents.some((a,i)=>a.id!==AI_GATEWAY_ROLES[i]||a.connection!=='not_connected'||a.execution!=='manual_only'||!Number.isSafeInteger(a.totalJobs)||a.totalJobs<0||!Number.isSafeInteger(a.pendingApproval)||a.pendingApproval<0||!Number.isSafeInteger(a.approved)||a.approved<0))return {ok:false,error:'ข้อมูลสถานะพนักงานไม่ถูกต้อง'};
+ if(!Number.isSafeInteger(value.totals.all)||value.totals.all<0||STATUSES.some(s=>!Number.isSafeInteger(value.totals[s])||value.totals[s]<0)||STATUSES.reduce((n,s)=>n+value.totals[s],0)!==value.totals.all)return {ok:false,error:'จำนวนงานไม่สอดคล้องกัน'};
+ if(value.recent.some(j=>!j||typeof j.id!=='string'||!/^[0-9a-f-]{36}$/.test(j.id)||!AI_GATEWAY_ROLES.includes(j.agentRole)||!STATUSES.includes(j.status)||typeof j.createdAt!=='string'))return {ok:false,error:'ประวัติงานไม่ถูกต้อง'};
+ return {ok:true,value:{version:1,mode:'local_manual_only',connectedDevices:0,totals:Object.fromEntries(['all',...STATUSES].map(s=>[s,value.totals[s]])),agents:value.agents.map(a=>({id:a.id,connection:'not_connected',execution:'manual_only',totalJobs:a.totalJobs,pendingApproval:a.pendingApproval,approved:a.approved,lastJobStatus:STATUSES.includes(a.lastJobStatus)?a.lastJobStatus:null})),recent:value.recent.map(j=>({id:j.id,agentRole:j.agentRole,status:j.status,createdAt:j.createdAt}))}};
+}
