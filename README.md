@@ -32,3 +32,13 @@ After this workflow is merged, each successful **push-to-main** Foundation CI ru
 **Expected preview URL (only after a successful Pages deployment):** https://lnwlawyer.github.io/ai-virtual-office/
 
 **Release acceptance:** confirm Pages workflow success and opening the URL, navigate all modules, create an in-memory task/output/knowledge entry, export and restore JSON with confirmation, refresh to verify ephemeral data disappears, and verify no Google login, AI API or Firebase data write is enabled in this preview. The presence of CI alone does not prove the public site is deployed.
+
+## Local Agent Bridge foundation (PR #109)
+
+This is an **opt-in, localhost-only, data-only prototype**, not a remote terminal or an AI connection. It does not execute commands, open a shell, access files, or connect to Claude/Gemini/ChatGPT. The public GitHub Pages preview remains simulated.
+
+On a trusted local computer, set a unique secret of at least 32 characters in the `LOCAL_BRIDGE_TOKEN` environment variable, then run `node local-bridge/server.js`. The server binds only to `127.0.0.1:8765` by default. Do not publish this port, expose it through a tunnel, or put the token in browser code, a GitHub secret exposed to the frontend, or a public `VITE_` variable.
+
+The protocol requires `Authorization: Bearer <token>` and rejects cross-origin browser requests. `GET /v1/health` reports readiness; `POST /v1/jobs` queues a validated `{version:1,agentRole,prompt}` request; `GET /v1/jobs` lists status; `GET /v1/jobs/:id` reads a job; `POST /v1/jobs/:id/result` manually records `{status:"completed"|"failed",content}`. All state is ephemeral, held in memory, with a maximum queue of 100 jobs. A process restart clears it. The API is deliberately not wired into the public web chat until a secure, user-authorized local pairing and approval design is implemented and reviewed.
+
+Run `npm test` and `npm run build` to validate the bridge alongside the existing application.
