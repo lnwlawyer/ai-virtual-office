@@ -462,7 +462,7 @@ test('Messenger task status updates shared task board and office workload',async
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  await page.getByText('งานของ นักวิจัยกฎหมาย (1 รายการ)').click();
  await page.getByRole('combobox',{name:'สถานะงาน งานเชื่อมสถานะ'}).selectOption('done');
- await expect(page.getByText('งานค้าง 0 รายการ')).toBeVisible();
+ await expect(page.getByText(/งานค้าง 0(?: รายการ)?/)).toBeVisible();
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'งานและโครงการ'}).click();
  await expect(page.getByRole('status').filter({hasText:'1 completed / 1 tasks'})).toBeVisible();
 });
@@ -553,7 +553,7 @@ test('Messenger exports only selected staff transcript as UTF-8 text',async({pag
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
- const exportButton=page.getByRole('button',{name:'ส่งออกบทสนทนา TXT'});
+ const exportButton=page.getByRole('button',{name:'ส่งออก TXT'});
  await expect(exportButton).toBeDisabled();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ทดสอบส่งออกภาษาไทย');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
@@ -643,7 +643,7 @@ test('Messenger productivity controls filter senders and clear only current draf
  await draft.fill('ข้อความทดสอบการกรอง');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
- await expect(page.getByText('สนทนา (2 ข้อความ)')).toBeVisible();
+ await expect(page.getByText('แสดง 2 จาก 2 ข้อความ')).toBeVisible();
  const filter=page.getByRole('combobox',{name:'กรองข้อความตามผู้ส่ง'});
  await filter.selectOption('user');
  await expect(log.getByRole('button',{name:'คัดลอกข้อความ'})).toHaveCount(1);
@@ -667,7 +667,7 @@ test('Messenger exports structured JSON and resets search while showing draft le
  await page.getByRole('button',{name:'ล้างคำค้นหา'}).click();
  await expect(search).toHaveValue('');
  const downloadPromise=page.waitForEvent('download');
- await page.getByRole('button',{name:'ส่งออกบทสนทนา JSON'}).click();
+ await page.getByRole('button',{name:'ส่งออก JSON'}).click();
  const download=await downloadPromise;
  expect(download.suggestedFilename()).toBe('messenger-manager-transcript.json');
  await expect(page.getByRole('status').filter({hasText:'เตรียมไฟล์ JSON'})).toBeVisible();
