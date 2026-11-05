@@ -1,5 +1,6 @@
 // Explicit opt-in local worker: processes only jobs already approved by the operator.
 import {generateWithOllama} from './ollama-adapter.js';
+import {parseWorkflow,runWorkflow} from './multi-agent-workflow.js';
 const BASE='http://127.0.0.1:';
 export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest',fetchImpl=fetch,generate=generateWithOllama}={}){
  if(typeof token!=='string'||token.length<32)throw new Error('LOCAL_BRIDGE_TOKEN is required');
@@ -15,7 +16,7 @@ export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest
   const job=await api('/v1/jobs/'+entry.id);
   if(job.status!=='approved')continue;
   try{
-   const content=await generate(job.prompt,{model});
+   const content=parseWorkflow(job.prompt)?await runWorkflow(job.prompt,{generate,model}):await generate(job.prompt,{model});
    await api('/v1/jobs/'+job.id+'/result','POST',{status:'completed',content});
    completed++;
   }catch(error){
