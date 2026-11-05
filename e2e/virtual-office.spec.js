@@ -678,6 +678,7 @@ test('Messenger exports all chats and confirms before clearing all',async({page}
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
+ await page.locator('.msn-roster-management > summary').click();
  const exportAll=page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'});
  const clearAll=page.getByRole('button',{name:'ล้างทุกบทสนทนา'});
  await expect(exportAll).toBeDisabled();
@@ -840,4 +841,18 @@ test('Messenger keeps employee filters compact and widens the desktop chat',asyn
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ตรวจสอบพื้นที่แชท');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ตรวจสอบพื้นที่แชท');
+});
+
+test('Messenger sidebar hides bulk controls until requested',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const management=page.locator('.msn-roster-management');
+ await expect(management).not.toHaveAttribute('open','');
+ await expect(page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'})).toHaveCount(0);
+ await management.locator('summary').click();
+ await expect(page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'})).toBeVisible();
+ if(await page.evaluate(()=>window.innerWidth>760)){
+  const width=await page.locator('.msn-roster').evaluate(el=>el.getBoundingClientRect().width);
+  expect(width).toBeLessThanOrEqual(185);
+ }
 });
