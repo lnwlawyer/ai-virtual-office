@@ -62,3 +62,7 @@ The authenticated local-only `GET /v1/status` endpoint reports queue totals, per
 ## Agent Control Room: bridge status report (PR #113)
 
 The public frontend displays a **read-only, manually pasted** JSON report from the authenticated local `GET /v1/status` endpoint. The page validates and sanitizes the report before rendering counts, per-agent queues and recent job IDs. No token, prompts or results should be pasted. This is a snapshot, **not** live presence or machine pairing. Windows 11 and Mac mini remain disconnected. The browser does not call localhost, store the bearer token, or execute commands. Obtain the report using a trusted local client that keeps the token private; never share the token or full job payload.
+
+## Export a local bridge status snapshot (PR #114)
+
+With the local bridge running and `LOCAL_BRIDGE_TOKEN` configured in your terminal environment, run `npm run bridge:status`. The command reads the localhost-only `/v1/status` endpoint and prints **sanitized** JSON to standard output; copy the output into **Agent Control Room** on the website. It does not send the report to any cloud endpoint. Do not paste your token, terminal environment variables, or full job details. Status remains a manually refreshed snapshot; it does not pair machines or run commands.
