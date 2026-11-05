@@ -423,6 +423,8 @@ test('office staff opens task board filtered to selected agent',async({page})=>{
 test('MSN-inspired messenger switches staff and keeps conversations separate',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await expect(page.getByRole('region',{name:'AI Messenger Dashboard'})).toBeVisible();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ตรวจสอบงานวันนี้');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
@@ -440,6 +442,8 @@ test('messenger shows assigned task statuses from existing task board',async({pa
  await page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'}).selectOption('legal');
  await page.getByRole('button',{name:'เพิ่มงาน'}).click();
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  await page.getByText('งานของ นักวิจัยกฎหมาย (1 รายการ)').click();
  await expect(page.getByText('ตรวจสอบคำร้อง')).toBeVisible();
@@ -453,10 +457,12 @@ test('Messenger task status updates shared task board and office workload',async
  await page.getByRole('combobox',{name:'พนักงานผู้รับผิดชอบ'}).selectOption('legal');
  await page.getByRole('button',{name:'เพิ่มงาน'}).click();
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  await page.getByText('งานของ นักวิจัยกฎหมาย (1 รายการ)').click();
  await page.getByRole('combobox',{name:'สถานะงาน งานเชื่อมสถานะ'}).selectOption('done');
- await expect(page.getByText('งานค้าง 0 รายการ')).toBeVisible();
+ await expect(page.getByText(/งานค้าง 0(?: รายการ)?/)).toBeVisible();
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'งานและโครงการ'}).click();
  await expect(page.getByRole('status').filter({hasText:'1 completed / 1 tasks'})).toBeVisible();
 });
@@ -464,6 +470,8 @@ test('Messenger task status updates shared task board and office workload',async
 test('Messenger simulated response saves to existing Output Library',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('สรุปงานประจำวัน');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  await page.getByRole('button',{name:'บันทึกคำตอบลงคลังผลงาน'}).click();
@@ -488,6 +496,8 @@ test('Messenger conversations and selected staff survive menu navigation',async(
 test('Messenger renders classic MSN-inspired blue chrome on desktop and mobile',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const shell=page.getByRole('region',{name:'AI Messenger Dashboard'});
  await expect(shell).toBeVisible();
  await expect(page.locator('.msn-title')).toContainText('AI Messenger');
@@ -500,6 +510,8 @@ test('Messenger renders classic MSN-inspired blue chrome on desktop and mobile',
 test('Messenger can cancel or confirm clearing only selected contact chat',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ข้อความผู้จัดการ');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
@@ -518,6 +530,8 @@ test('Messenger can cancel or confirm clearing only selected contact chat',async
 test('Messenger search filters only the selected conversation',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const input=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await input.fill('รายงานประจำเดือน');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
@@ -537,7 +551,9 @@ test('Messenger search filters only the selected conversation',async({page})=>{
 test('Messenger exports only selected staff transcript as UTF-8 text',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
- const exportButton=page.getByRole('button',{name:'ส่งออกบทสนทนา TXT'});
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
+ const exportButton=page.getByRole('button',{name:'ส่งออก TXT'});
  await expect(exportButton).toBeDisabled();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ทดสอบส่งออกภาษาไทย');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
@@ -554,6 +570,8 @@ test('Messenger copies one message without changing conversation',async({page,co
  await context.grantPermissions(['clipboard-read','clipboard-write']);
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('คัดลอกข้อความทดสอบ');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
@@ -566,6 +584,8 @@ test('Messenger copies one message without changing conversation',async({page,co
 test('Messenger quick command fills draft without sending until confirmed',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('button',{name:'จัดลำดับความสำคัญของงาน'}).click();
  const input=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await expect(input).toHaveValue('จัดลำดับความสำคัญของงาน');
@@ -578,6 +598,8 @@ test('Messenger quick command fills draft without sending until confirmed',async
 test('Messenger quick commands change when selecting a different staff role',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await expect(page.getByRole('button',{name:'สรุปงานของทีมวันนี้'})).toBeVisible();
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  await expect(page.getByRole('button',{name:'วิเคราะห์ประเด็นข้อกฎหมาย'})).toBeVisible();
@@ -589,6 +611,8 @@ test('Messenger quick commands change when selecting a different staff role',asy
 test('Messenger keeps unsent drafts separately for each staff member',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ร่างสำหรับผู้จัดการ');
  await page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).click();
  const legalDraft=page.getByRole('textbox',{name:/ข้อความถึง นักวิจัยกฎหมาย/});
@@ -607,6 +631,8 @@ test('Messenger keeps unsent drafts separately for each staff member',async({pag
 test('Messenger productivity controls filter senders and clear only current draft',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  const clear=page.getByRole('button',{name:'ล้างข้อความร่าง'});
  await expect(clear).toBeDisabled();
@@ -617,7 +643,7 @@ test('Messenger productivity controls filter senders and clear only current draf
  await draft.fill('ข้อความทดสอบการกรอง');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  const log=page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'});
- await expect(page.getByText('สนทนา (2 ข้อความ)')).toBeVisible();
+ await expect(page.getByText('แสดง 2 จาก 2 ข้อความ')).toBeVisible();
  const filter=page.getByRole('combobox',{name:'กรองข้อความตามผู้ส่ง'});
  await filter.selectOption('user');
  await expect(log.getByRole('button',{name:'คัดลอกข้อความ'})).toHaveCount(1);
@@ -630,6 +656,8 @@ test('Messenger productivity controls filter senders and clear only current draf
 test('Messenger exports structured JSON and resets search while showing draft length',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await draft.fill('ข้อมูลทดสอบ JSON');
  await expect(page.getByText(/\/8000 ตัวอักษร/)).toBeVisible();
@@ -639,7 +667,7 @@ test('Messenger exports structured JSON and resets search while showing draft le
  await page.getByRole('button',{name:'ล้างคำค้นหา'}).click();
  await expect(search).toHaveValue('');
  const downloadPromise=page.waitForEvent('download');
- await page.getByRole('button',{name:'ส่งออกบทสนทนา JSON'}).click();
+ await page.getByRole('button',{name:'ส่งออก JSON'}).click();
  const download=await downloadPromise;
  expect(download.suggestedFilename()).toBe('messenger-manager-transcript.json');
  await expect(page.getByRole('status').filter({hasText:'เตรียมไฟล์ JSON'})).toBeVisible();
@@ -648,6 +676,8 @@ test('Messenger exports structured JSON and resets search while showing draft le
 test('Messenger exports all chats and confirms before clearing all',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const exportAll=page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'});
  const clearAll=page.getByRole('button',{name:'ล้างทุกบทสนทนา'});
  await expect(exportAll).toBeDisabled();
@@ -670,6 +700,8 @@ test('Messenger exports all chats and confirms before clearing all',async({page}
 test('Messenger roster shows draft and chat badges and filters active conversations',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const manager=page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).first();
  const legal=page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).first();
  const activeOnly=page.getByRole('checkbox',{name:'แสดงเฉพาะพนักงานที่มีบทสนทนา'});
@@ -688,6 +720,8 @@ test('Messenger roster shows draft and chat badges and filters active conversati
 test('Messenger roster supports draft-only filter, sorting and visible count',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  await expect(page.getByText('แสดง 7 จาก 7 คน')).toBeVisible();
  const onlyDrafts=page.getByRole('checkbox',{name:'เฉพาะพนักงานที่มีข้อความร่าง'});
  await onlyDrafts.check();
@@ -708,6 +742,8 @@ test('Messenger roster supports draft-only filter, sorting and visible count',as
 test('Messenger advanced search shows result counts and resets combined filters',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await draft.fill('AlphaCASE');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
@@ -729,6 +765,8 @@ test('Messenger advanced search shows result counts and resets combined filters'
 test('Messenger batch composer supports prompt append and roster reset',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await draft.fill('บรรทัดแรก');
  await page.getByRole('checkbox',{name:'เพิ่มต่อท้ายข้อความร่าง'}).check();
@@ -747,6 +785,8 @@ test('Messenger batch composer supports prompt append and roster reset',async({p
 test('Messenger can reuse a sent prompt and confirm individual message deletion',async({page})=>{
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await page.locator('.msn-quick-prompts > summary').click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await draft.fill('ข้อความสำหรับทดสอบ');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
@@ -763,4 +803,16 @@ test('Messenger can reuse a sent prompt and confirm individual message deletion'
  await expect(log.locator('.msn-message')).toHaveCount(1);
  await expect(page.getByText('แสดง 1 จาก 1 ข้อความ')).toBeVisible();
  await expect(page.getByRole('button',{name:'คัดลอกข้อความที่แสดง'})).toBeEnabled();
+});
+
+test('Messenger compact layout prioritizes chat and composer by default',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await expect(page.locator('.msn-advanced-tools')).not.toHaveAttribute('open','');
+ await expect(page.locator('.msn-quick-prompts')).not.toHaveAttribute('open','');
+ await expect(page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/})).toBeVisible();
+ await page.locator('.msn-advanced-tools > summary').click();
+ await expect(page.getByRole('searchbox',{name:'ค้นหาข้อความในบทสนทนา'})).toBeVisible();
+ await page.locator('.msn-quick-prompts > summary').click();
+ await expect(page.getByRole('button',{name:'สรุปงานของทีมวันนี้'})).toBeVisible();
 });

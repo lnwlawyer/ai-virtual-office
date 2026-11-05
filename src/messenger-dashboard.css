@@ -80,3 +80,28 @@
 .msn-roster-reset{margin:4px 10px 8px;padding:5px 8px;font-size:11px}.msn-prompt-append{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#245a84}.msn-draft-warning{font-size:11px;color:#8b4400;display:block;padding:4px 0}.msn-prompt-append input{accent-color:#2976af}
 
 .msn-message-delete-confirm{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:6px;padding:7px;background:#fff5e8;border:1px solid #e8c6a0;border-radius:5px;font-size:11px}.msn-message-delete-confirm button{font-size:11px;padding:4px 7px}
+
+
+/* Compact chat-first layout: advanced controls are accessible but closed by default. */
+.msn-shell{height:min(88vh,920px);min-height:540px}
+.msn-chat-top{padding:9px 14px;gap:10px}
+.msn-avatar.large{width:42px;height:42px;font-size:18px}
+.msn-chat-top h2{font-size:17px}
+.msn-chat-toolbar{padding:6px 12px;gap:10px;flex-wrap:wrap}
+.msn-chat-toolbar button{margin-left:auto}
+.msn-advanced-tools{flex:none;background:#f1f8ff;border-bottom:1px solid #bad5e9;font-size:12px}
+.msn-advanced-tools>summary{cursor:pointer;padding:7px 14px;color:#185d96;font-weight:700}
+.msn-advanced-tools[open]{max-height:40%;overflow:auto}
+.msn-advanced-actions{display:flex;gap:7px;flex-wrap:wrap;padding:6px 12px}
+.msn-advanced-actions button{padding:5px 9px;font-size:11px}
+.msn-task-details{padding:6px 12px;flex:none}
+.msn-conversation{flex:1;min-height:150px;padding:14px 18px}
+.msn-composer{flex:none;padding:9px 13px}
+.msn-composer textarea{min-height:92px;max-height:190px}
+.msn-composer>div{margin-top:5px}
+.msn-quick-prompts{display:block;margin:0 0 7px}
+.msn-quick-prompts>summary{cursor:pointer;font-size:12px;color:#185d96;font-weight:700;padding:3px 0}
+.msn-quick-prompt-items{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:7px 0}
+.msn-quick-prompt-items .msn-prompt-append{display:inline-flex}
+.msn-clear-draft{margin:2px 0 5px}
+@media(max-width:760px){.msn-shell{height:auto;min-height:0}.msn-chat{height:620px}.msn-chat-top{padding:8px 10px}.msn-conversation{min-height:130px;padding:10px}.msn-advanced-tools[open]{max-height:45%}.msn-composer{padding:8px 10px}}
