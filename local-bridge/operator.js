@@ -21,6 +21,7 @@ try{
   const decision=(await rl.question('Approve this data-only job? [y/N] ')).trim().toLowerCase()==='y'?'approve':'reject';
   await api('/v1/jobs/'+job.id+'/decision','POST',{decision});
   if(decision==='reject'){console.log('Rejected',job.id);continue}
+  if(process.env.LOCAL_BRIDGE_APPROVAL_ONLY==='1'){console.log('Approved for local Ollama worker:',job.id);continue}
   console.log('Approved. Run any external agent separately under your own control; paste its text result here.');
   const content=await rl.question('Result text (empty to mark failed): ');
   const status=content.trim()?'completed':'failed';
