@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test",
+    "bridge:status": "node local-bridge/export-status.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {
