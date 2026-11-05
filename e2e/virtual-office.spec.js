@@ -702,6 +702,7 @@ test('Messenger roster shows draft and chat badges and filters active conversati
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
+ await page.locator('.msn-roster-filters > summary').click();
  const manager=page.getByRole('button',{name:/ผู้จัดการสำนักงาน/}).first();
  const legal=page.getByRole('button',{name:/นักวิจัยกฎหมาย/}).first();
  const activeOnly=page.getByRole('checkbox',{name:'แสดงเฉพาะพนักงานที่มีบทสนทนา'});
@@ -722,6 +723,7 @@ test('Messenger roster supports draft-only filter, sorting and visible count',as
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
+ await page.locator('.msn-roster-filters > summary').click();
  await expect(page.getByText('แสดง 7 จาก 7 คน')).toBeVisible();
  const onlyDrafts=page.getByRole('checkbox',{name:'เฉพาะพนักงานที่มีข้อความร่าง'});
  await onlyDrafts.check();
@@ -767,6 +769,7 @@ test('Messenger batch composer supports prompt append and roster reset',async({p
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
+ await page.locator('.msn-roster-filters > summary').click();
  const draft=page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/});
  await draft.fill('บรรทัดแรก');
  await page.getByRole('checkbox',{name:'เพิ่มต่อท้ายข้อความร่าง'}).check();
