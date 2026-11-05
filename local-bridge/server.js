@@ -3,6 +3,7 @@ import http from 'node:http';
 import {createJobStore} from './job-store.js';
 import {randomBytes,randomUUID,timingSafeEqual} from 'node:crypto';
 import {validateBridgeJob,validateBridgeResult} from '../src/local-agent-bridge-contract.js';
+import {buildBridgeStatus} from './status.js';
 const MAX_BODY=12000;
 export function createBridgeServer({token=randomBytes(32).toString('hex'),host='127.0.0.1',port=8765,storagePath=null}={}){
  if(!/^(127\.0\.0\.1|::1)$/.test(host))throw new Error('Only loopback binding is supported');
@@ -28,6 +29,7 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
   const url=new URL(req.url,'http://localhost');
   try{
    if(req.method==='GET'&&url.pathname==='/v1/health')return json(res,200,{version:1,status:'ready',execution:'manual-only'});
+   if(req.method==='GET'&&url.pathname==='/v1/status')return json(res,200,buildBridgeStatus(jobs));
    if(req.method==='POST'&&url.pathname==='/v1/jobs'){
     const checked=validateBridgeJob(await readBody(req));
     if(!checked.ok)return json(res,400,{error:checked.error});
