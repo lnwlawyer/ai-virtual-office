@@ -95,3 +95,7 @@ This first milestone runs locally on Windows and requires user action on the com
 ## Windows 11 Ollama preflight (PR #116)
 
 Before creating jobs, run `npm run bridge:check-ollama` in PowerShell. It checks the local Ollama endpoint and verifies the configured model is installed without generating text. For a short, opt-in inference smoke test, run `$env:OLLAMA_SMOKE_GENERATE = '1'` followed by `npm run bridge:check-ollama`. Both actions remain on localhost. If the model is missing, inspect `ollama list` and choose an installed model using `$env:OLLAMA_MODEL`. This preflight does not establish a connection to the GitHub Pages Messenger.
+
+## One-command local Ollama Messenger (PR #117)
+
+With Ollama already running on Windows 11, update the repository and run `npm.cmd run chat:local`. Open `http://127.0.0.1:8787` in the **same computer's** browser and chat in Thai with the locally installed `qwen2.5:latest` model. No bridge token, job creation, separate approval window, paid API, or shell execution is needed for this **text-only** chat. Messages are processed locally and not persisted by this server. This standalone local Messenger is separate from the public GitHub Pages Messenger and does not expose a public endpoint. For tasks with privileged side effects, continue using the approval-gated Bridge workflow.
