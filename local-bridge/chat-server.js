@@ -7,7 +7,7 @@ import {buildAgentPrompt} from './chat-roles.js';
 import {createBridgeServer} from './server.js';
 import {processApprovedJobs} from './ollama-worker.js';
 import {randomBytes} from 'node:crypto';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readdir,stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {homedir} from 'node:os';
 const htmlPath=fileURLToPath(new URL('./chat.html',import.meta.url));
@@ -25,6 +25,15 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
    const token=bridgeToken;
    if(!token||token.length<32)return reply(200,{connected:false,reason:'Bridge token not configured'});
    try{const response=await fetch('http://127.0.0.1:'+bridgePort+'/v1/status',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(2500)});if(!response.ok)return reply(200,{connected:false,reason:'Bridge authentication or service unavailable'});const data=await response.json();return reply(200,{connected:true,status:data})}catch{return reply(200,{connected:false,reason:'Bridge is not running'})}
+  }
+  if(req.url==='/api/exports'&&req.method==='GET'){
+   const dir=join(homedir(),'Documents','AI-Virtual-Office','exports');
+   try{
+    const entries=await readdir(dir,{withFileTypes:true});
+    const names=entries.filter(e=>e.isFile()&&/^job-[0-9a-f-]{36}\.txt$/.test(e.name)).map(e=>e.name).sort().slice(0,200);
+    const files=await Promise.all(names.map(async filename=>{const info=await stat(join(dir,filename));return {filename,size:info.size,modifiedAt:info.mtime.toISOString()}}));
+    return reply(200,{files});
+   }catch(error){return error.code==='ENOENT'?reply(200,{files:[]}):reply(500,{error:'Unable to list exports'})}
   }
   if(req.url?.startsWith('/api/jobs/')){
    const exportMatch=/^\/api\/jobs\/([0-9a-f-]{36})\/export$/.exec(req.url);
