@@ -21,7 +21,8 @@ export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest
    completed++;
   }catch(error){
    // Do not expose sensitive prompt or server internals in job results.
-   await api('/v1/jobs/'+job.id+'/result','POST',{status:'failed',content:'Local Ollama generation failed'});
+   const safe=/^Workflow failed at (analyst|writer|reviewer|manager) \((timeout|model_not_found|ollama_unavailable|generation_error|empty_response)\)$/.test(error?.message||'')?error.message:'Local Ollama generation failed';
+   await api('/v1/jobs/'+job.id+'/result','POST',{status:'failed',content:safe});
    failed++;
   }
  }
