@@ -21,7 +21,7 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
   if(req.method==='GET'&&req.url==='/api/bridge/status'){
    const token=bridgeToken;
    if(!token||token.length<32)return reply(200,{connected:false,reason:'Bridge token not configured'});
-   try{const response=await fetch(''http://127.0.0.1:'+bridgePort+'/v1/status'',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(2500)});if(!response.ok)return reply(200,{connected:false,reason:'Bridge authentication or service unavailable'});const data=await response.json();return reply(200,{connected:true,status:data})}catch{return reply(200,{connected:false,reason:'Bridge is not running'})}
+   try{const response=await fetch('http://127.0.0.1:'+bridgePort+'/v1/status',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(2500)});if(!response.ok)return reply(200,{connected:false,reason:'Bridge authentication or service unavailable'});const data=await response.json();return reply(200,{connected:true,status:data})}catch{return reply(200,{connected:false,reason:'Bridge is not running'})}
   }
   if(req.url?.startsWith('/api/jobs')){
    if(!bridgeToken||bridgeToken.length<32)return reply(503,{error:'Bridge unavailable'});
