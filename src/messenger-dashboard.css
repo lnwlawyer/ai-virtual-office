@@ -125,3 +125,29 @@
  .msn-roster-filters>summary{padding:7px 10px}
  .msn-message{max-width:94%}
 }
+
+
+/* Compact employee sidebar: keep the roster prominent, tools optional. */
+@media(min-width:761px){
+ .msn-shell{grid-template-columns:minmax(0,184px) minmax(0,1fr)}
+ .msn-roster{max-width:184px;min-width:0}
+}
+.msn-title{padding:9px 10px;gap:1px}
+.msn-title strong{font-size:15px}
+.msn-title small{font-size:10px}
+.msn-roster-management,.msn-roster-filters{background:#f4f8fd;border-bottom:1px solid #d5e2ef;font-size:11px}
+.msn-roster-management>summary,.msn-roster-filters>summary{padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer}
+.msn-roster-management .msn-roster-tools{padding:5px 7px;gap:4px}
+.msn-roster-management .msn-roster-tools button{font-size:10px;padding:4px 6px}
+.msn-group{padding:1px 4px}
+.msn-group-toggle{padding:6px 5px;font-size:11px}
+.msn-contact{padding:5px 4px;gap:6px}
+.msn-contact .msn-avatar{width:27px;height:27px;border-radius:7px;font-size:12px}
+.msn-contact-text strong{font-size:12px}
+.msn-contact-text small{font-size:10px;margin-top:0}
+.msn-contact .msn-presence{height:7px;width:7px}
+.msn-contact .msn-chat-count,.msn-contact .msn-draft-marker,.msn-contact .msn-badge{font-size:9px;padding:1px 3px}
+@media(max-width:760px){
+ .msn-roster{max-height:200px}
+ .msn-title{padding:8px 10px}
+}
