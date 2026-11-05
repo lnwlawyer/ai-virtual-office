@@ -816,3 +816,25 @@ test('Messenger compact layout prioritizes chat and composer by default',async({
  await page.locator('.msn-quick-prompts > summary').click();
  await expect(page.getByRole('button',{name:'สรุปงานของทีมวันนี้'})).toBeVisible();
 });
+
+
+test('Messenger keeps employee filters compact and widens the desktop chat',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ const filters=page.locator('.msn-roster-filters');
+ await expect(filters).not.toHaveAttribute('open','');
+ await filters.locator('summary').click();
+ await expect(filters).toHaveAttribute('open','');
+ await expect(page.getByRole('textbox',{name:'ค้นหาพนักงาน Messenger'})).toBeVisible();
+ const layout=await page.locator('.msn-shell').evaluate(el=>({
+  roster:el.querySelector('.msn-roster').getBoundingClientRect().width,
+  shell:el.getBoundingClientRect().width
+ }));
+ if(await page.evaluate(()=>window.innerWidth>760)){
+  expect(layout.roster).toBeLessThanOrEqual(221);
+  expect(layout.shell-layout.roster).toBeGreaterThan(250);
+ }
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ตรวจสอบพื้นที่แชท');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(page.getByRole('log',{name:'บทสนทนากับ ผู้จัดการสำนักงาน'})).toContainText('ตรวจสอบพื้นที่แชท');
+});
