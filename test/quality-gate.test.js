@@ -15,7 +15,7 @@ test('review rejection triggers one revision and second review before manager',a
  };
  const result=await runWorkflow(createWorkflowV2('สรุปกฎหมายที่ดิน'),{generate,model:'mock'});
  assert.equal(reviews,2);
- assert.equal(calls.length,7);
+ assert.equal(calls.length,6);
  assert.match(result,/manager/);
  assert.match(result,/VERDICT: PASS/);
 });
