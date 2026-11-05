@@ -15,6 +15,11 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
   const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'self'",'Referrer-Policy':'no-referrer'};
   function reply(status,value){res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value))}
   if(!validHost||!validOrigin||req.headers['sec-fetch-site']&&!['same-origin','none'].includes(req.headers['sec-fetch-site']))return reply(403,{error:'Local browser only'});
+  if(req.method==='GET'&&req.url==='/api/bridge/status'){
+   const token=process.env.LOCAL_BRIDGE_TOKEN;
+   if(!token||token.length<32)return reply(200,{connected:false,reason:'Bridge token not configured'});
+   try{const response=await fetch('http://127.0.0.1:8765/v1/status',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(2500)});if(!response.ok)return reply(200,{connected:false,reason:'Bridge authentication or service unavailable'});const data=await response.json();return reply(200,{connected:true,status:data})}catch{return reply(200,{connected:false,reason:'Bridge is not running'})}
+  }
   if(req.method==='GET'&&req.url==='/'){const page=await readFile(htmlPath);res.writeHead(200,{...headers,'Content-Type':'text/html; charset=utf-8'});return res.end(page)}
   if(req.method==='POST'&&req.url==='/api/chat'){
    if(req.headers.origin!==expected)return reply(403,{error:'Same-origin request required'});
