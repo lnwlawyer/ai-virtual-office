@@ -91,3 +91,7 @@ In a second PowerShell terminal, set the **same** token, then run `node local-br
 5. Run `npm run bridge:status` to view status. To read full output use authenticated local `GET /v1/jobs/:id`.
 
 This first milestone runs locally on Windows and requires user action on the computer. It is not yet integrated into public Messenger and is not a claim that any local machine was tested remotely.
+
+## Windows 11 Ollama preflight (PR #116)
+
+Before creating jobs, run `npm run bridge:check-ollama` in PowerShell. It checks the local Ollama endpoint and verifies the configured model is installed without generating text. For a short, opt-in inference smoke test, run `$env:OLLAMA_SMOKE_GENERATE = '1'` followed by `npm run bridge:check-ollama`. Both actions remain on localhost. If the model is missing, inspect `ollama list` and choose an installed model using `$env:OLLAMA_MODEL`. This preflight does not establish a connection to the GitHub Pages Messenger.
