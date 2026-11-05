@@ -3,6 +3,7 @@ import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {generateWithOllama} from './ollama-adapter.js';
+import {buildAgentPrompt} from './chat-roles.js';
 const htmlPath=fileURLToPath(new URL('./chat.html',import.meta.url));
 export function createLocalChatServer({port=8787,generate=generateWithOllama,model=process.env.OLLAMA_MODEL||'qwen2.5:latest'}={}){
  let active=false;
@@ -22,10 +23,11 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
    let body='';
    try{
     for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>12000)return reply(413,{error:'ข้อความยาวเกินไป'})}
-    const {prompt}=JSON.parse(body);
-    if(typeof prompt!=='string'||!prompt.trim()||prompt.length>8000)return reply(400,{error:'ข้อความไม่ถูกต้อง'});
+    const {prompt,role='developer',history=[]}=JSON.parse(body);
+    let agentPrompt;
+    try{agentPrompt=buildAgentPrompt(role,history,prompt)}catch{return reply(400,{error:'ข้อมูลการสนทนาไม่ถูกต้อง'});}
     active=true;
-    try{const content=await generate(prompt,{model});return reply(200,{content})}
+    try{const content=await generate(agentPrompt,{model});return reply(200,{content})}
     finally{active=false}
    }catch{return reply(502,{error:'Ollama ไม่พร้อมใช้งานหรือประมวลผลไม่สำเร็จ'})}
   }

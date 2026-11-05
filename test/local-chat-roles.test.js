@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {buildAgentPrompt,LOCAL_AGENT_ROLES} from '../local-bridge/chat-roles.js';
+test('all seven agents have unique Thai persona instructions',()=>{assert.equal(Object.keys(LOCAL_AGENT_ROLES).length,7);assert.equal(new Set(Object.values(LOCAL_AGENT_ROLES).map(x=>x.instruction)).size,7)});
+test('agent prompt includes bounded conversation history',()=>{const text=buildAgentPrompt('legal',[{role:'user',content:'ก่อนหน้า'}],'คำถามใหม่');assert.match(text,/ก่อนหน้า/);assert.match(text,/คำถามใหม่/);assert.match(text,/ข้อกฎหมาย/)});
+test('reject invalid role and excessive context',()=>{assert.throws(()=>buildAgentPrompt('admin',[],'hello'));assert.throws(()=>buildAgentPrompt('legal',Array(13).fill({role:'user',content:'x'}),'hello'))});
