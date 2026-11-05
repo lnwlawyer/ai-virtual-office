@@ -5,6 +5,7 @@ import {randomBytes,randomUUID,timingSafeEqual} from 'node:crypto';
 import {validateBridgeJob,validateBridgeResult} from '../src/local-agent-bridge-contract.js';
 import {buildBridgeStatus} from './status.js';
 const MAX_BODY=12000;
+const MAX_RESULT_BODY=90000;
 export function createBridgeServer({token=randomBytes(32).toString('hex'),host='127.0.0.1',port=8765,storagePath=null}={}){
  if(!/^(127\.0\.0\.1|::1)$/.test(host))throw new Error('Only loopback binding is supported');
  if(typeof token!=='string'||token.length<32)throw new Error('Bridge token must be at least 32 characters');
@@ -17,9 +18,9 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
   return typeof supplied==='string'&&Buffer.byteLength(supplied)===Buffer.byteLength(expected)&&timingSafeEqual(Buffer.from(supplied),Buffer.from(expected));
  };
  const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(value))};
- const readBody=async req=>{
+ const readBody=async(req,maxBytes=MAX_BODY)=>{
   let data='';
-  for await(const chunk of req){data+=chunk;if(Buffer.byteLength(data)>MAX_BODY)throw new Error('Body too large')}
+  for await(const chunk of req){data+=chunk;if(Buffer.byteLength(data)>maxBytes)throw new Error('Body too large')}
   try{return JSON.parse(data)}catch{throw new Error('Invalid JSON')}
  };
  const server=http.createServer(async(req,res)=>{
@@ -58,7 +59,7 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
     }
     if(req.method==='POST'&&match[2]==='result'){
      if(job.status!=='approved')return json(res,409,{error:'Job not approved or already resolved'});
-     const checked=validateBridgeResult(await readBody(req));
+     const checked=validateBridgeResult(await readBody(req,MAX_RESULT_BODY));
      if(!checked.ok)return json(res,400,{error:checked.error});
      await commit(()=>Object.assign(job,checked.value,{finishedAt:new Date().toISOString()}));
      return json(res,200,{id:job.id,status:job.status});
