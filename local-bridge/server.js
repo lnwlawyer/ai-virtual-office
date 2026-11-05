@@ -38,7 +38,7 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
     await commit(map=>map.set(job.id,job));return json(res,201,{id:job.id,status:job.status});
    }
    if(req.method==='GET'&&url.pathname==='/v1/jobs')return json(res,200,{jobs:[...jobs.values()].map(({id,agentRole,status,createdAt})=>({id,agentRole,status,createdAt}))});
-   const match=/^\/v1\/jobs\/([0-9a-f-]{36})(?:\/(result|decision))?$/.exec(url.pathname);
+   const match=/^\/v1\/jobs\/([0-9a-f-]{36})(?:\/(result|decision|progress))?$/.exec(url.pathname);
    if(match&&jobs.has(match[1])){
     const job=jobs.get(match[1]);
     if(req.method==='GET'&&!match[2])return json(res,200,job);
@@ -48,6 +48,13 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
      if(!decision||!['approve','reject'].includes(decision.decision))return json(res,400,{error:'Invalid decision'});
      await commit(()=>{job.status=decision.decision==='approve'?'approved':'rejected';job.decidedAt=new Date().toISOString()});
      return json(res,200,{id:job.id,status:job.status});
+    }
+    if(req.method==='POST'&&match[2]==='progress'){
+     if(job.status!=='approved')return json(res,409,{error:'Job not approved'});
+     const progress=await readBody(req);
+     if(!progress||!['analyst','writer','reviewer','manager','legal','developer','designer'].includes(progress.role)||!['running','completed'].includes(progress.status)||!Number.isInteger(progress.stage)||!Number.isInteger(progress.total)||progress.stage<1||progress.total>4||progress.stage>progress.total)return json(res,400,{error:'Invalid progress'});
+     await commit(()=>{job.progress={role:progress.role,status:progress.status,stage:progress.stage,total:progress.total,updatedAt:new Date().toISOString()}});
+     return json(res,200,{id:job.id,progress:job.progress});
     }
     if(req.method==='POST'&&match[2]==='result'){
      if(job.status!=='approved')return json(res,409,{error:'Job not approved or already resolved'});
