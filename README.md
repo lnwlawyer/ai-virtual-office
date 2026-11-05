@@ -42,3 +42,11 @@ On a trusted local computer, set a unique secret of at least 32 characters in th
 The protocol requires `Authorization: Bearer <token>` and rejects cross-origin browser requests. `GET /v1/health` reports readiness; `POST /v1/jobs` queues a validated `{version:1,agentRole,prompt}` request; `GET /v1/jobs` lists status; `GET /v1/jobs/:id` reads a job; `POST /v1/jobs/:id/result` manually records `{status:"completed"|"failed",content}`. All state is ephemeral, held in memory, with a maximum queue of 100 jobs. A process restart clears it. The API is deliberately not wired into the public web chat until a secure, user-authorized local pairing and approval design is implemented and reviewed.
 
 Run `npm test` and `npm run build` to validate the bridge alongside the existing application.
+
+## Local bridge approval/operator (PR #110)
+
+Jobs now start as `awaiting_approval`. They cannot be completed until an explicit `POST /v1/jobs/:id/decision` with `{"decision":"approve"}`. A rejected job is terminal. The same endpoint accepts `{"decision":"reject"}`; duplicate decisions and result submissions are rejected.
+
+On the **same trusted computer** as the bridge, start the server with `LOCAL_BRIDGE_TOKEN` set to a unique 32+ character value. Run `node local-bridge/operator.js` in another terminal with the same environment variable. The operator displays queued prompts, asks for approval, and lets you paste a manually obtained text result. It never starts processes, executes user prompts as shell commands, or invokes AI providers. No token is printed. Never expose the bridge port or token publicly. The operator and bridge are intended only for a trusted local user; do not run with untrusted local accounts.
+
+The public GitHub Pages chat remains a **simulation**; local pairing, per-agent credentials, persistent audit logs and real terminal integration are not yet implemented.

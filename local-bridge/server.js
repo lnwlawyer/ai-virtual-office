@@ -20,7 +20,7 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
  };
  const server=http.createServer(async(req,res)=>{
   // Reject cross-origin browser access, including DNS rebinding attempts.
-  if(req.headers.origin||!['127.0.0.1','localhost','[::1]'].includes((req.headers.host||'').split(':')[0]))return json(res,403,{error:'Local clients only'});
+  if(req.headers.origin||!['127.0.0.1','localhost'].includes(req.headers.host?.split(':')[0])&&!/^\[::1\](?::\d+)?$/.test(req.headers.host||''))return json(res,403,{error:'Local clients only'});
   if(!authorized(req))return json(res,401,{error:'Unauthorized'});
   const url=new URL(req.url,'http://localhost');
   try{
@@ -29,16 +29,24 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
     const checked=validateBridgeJob(await readBody(req));
     if(!checked.ok)return json(res,400,{error:checked.error});
     if(jobs.size>=100)return json(res,429,{error:'Queue full'});
-    const job={id:randomUUID(),...checked.value,status:'queued',createdAt:new Date().toISOString()};
+    const job={id:randomUUID(),...checked.value,status:'awaiting_approval',createdAt:new Date().toISOString()};
     jobs.set(job.id,job);return json(res,201,{id:job.id,status:job.status});
    }
    if(req.method==='GET'&&url.pathname==='/v1/jobs')return json(res,200,{jobs:[...jobs.values()].map(({id,agentRole,status,createdAt})=>({id,agentRole,status,createdAt}))});
-   const match=/^\/v1\/jobs\/([0-9a-f-]{36})(?:\/result)?$/.exec(url.pathname);
+   const match=/^\/v1\/jobs\/([0-9a-f-]{36})(?:\/(result|decision))?$/.exec(url.pathname);
    if(match&&jobs.has(match[1])){
     const job=jobs.get(match[1]);
-    if(req.method==='GET'&&!url.pathname.endsWith('/result'))return json(res,200,job);
-    if(req.method==='POST'&&url.pathname.endsWith('/result')){
-     if(job.status!=='queued')return json(res,409,{error:'Job already resolved'});
+    if(req.method==='GET'&&!match[2])return json(res,200,job);
+    if(req.method==='POST'&&match[2]==='decision'){
+     if(job.status!=='awaiting_approval')return json(res,409,{error:'Decision already recorded'});
+     const decision=await readBody(req);
+     if(!decision||!['approve','reject'].includes(decision.decision))return json(res,400,{error:'Invalid decision'});
+     job.status=decision.decision==='approve'?'approved':'rejected';
+     job.decidedAt=new Date().toISOString();
+     return json(res,200,{id:job.id,status:job.status});
+    }
+    if(req.method==='POST'&&match[2]==='result'){
+     if(job.status!=='approved')return json(res,409,{error:'Job not approved or already resolved'});
      const checked=validateBridgeResult(await readBody(req));
      if(!checked.ok)return json(res,400,{error:checked.error});
      Object.assign(job,checked.value,{finishedAt:new Date().toISOString()});
@@ -51,6 +59,7 @@ export function createBridgeServer({token=randomBytes(32).toString('hex'),host='
  return {server,token,listen:()=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,host,()=>{server.off('error',reject);resolve(server.address())})}),close:()=>new Promise((resolve,reject)=>server.close(err=>err?reject(err):resolve()))};
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
+ if(!process.env.LOCAL_BRIDGE_TOKEN){console.error('LOCAL_BRIDGE_TOKEN is required (at least 32 characters)');process.exit(1)}
  const bridge=createBridgeServer({token:process.env.LOCAL_BRIDGE_TOKEN,port:Number(process.env.LOCAL_BRIDGE_PORT||8765)});
  bridge.listen().then(address=>console.log('Local Agent Bridge listening on http://127.0.0.1:'+address.port+' (manual-only, no command execution)')).catch(error=>{console.error(error.message);process.exitCode=1});
 }

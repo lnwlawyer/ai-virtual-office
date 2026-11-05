@@ -23,7 +23,8 @@ test('bridge is authenticated, loopback-only and manually resolves jobs',async()
   const created=await request('/v1/jobs',{method:'POST',body:JSON.stringify(payload)});
   assert.equal(created.status,201);
   const {id}=await created.json();
-  assert.equal((await (await request('/v1/jobs/'+id)).json()).status,'queued');
+  assert.equal((await (await request('/v1/jobs/'+id)).json()).status,'awaiting_approval');
+  assert.equal((await request('/v1/jobs/'+id+'/decision',{method:'POST',body:JSON.stringify({decision:'approve'})})).status,200);
   assert.equal((await request('/v1/jobs/'+id+'/result',{method:'POST',body:JSON.stringify({status:'completed',content:'Reviewed'})})).status,200);
   assert.equal((await (await request('/v1/jobs/'+id)).json()).content,'Reviewed');
   assert.equal((await request('/v1/jobs/'+id+'/result',{method:'POST',body:JSON.stringify({status:'completed',content:'again'})})).status,409);
