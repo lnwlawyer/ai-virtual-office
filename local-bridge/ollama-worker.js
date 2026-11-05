@@ -16,7 +16,7 @@ export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest
   const job=await api('/v1/jobs/'+entry.id);
   if(job.status!=='approved')continue;
   try{
-   const content=parseWorkflow(job.prompt)?await runWorkflow(job.prompt,{generate,model}):await generate(job.prompt,{model});
+   const content=parseWorkflow(job.prompt)?await runWorkflow(job.prompt,{generate,model,onProgress:progress=>api('/v1/jobs/'+job.id+'/progress','POST',progress)}):await generate(job.prompt,{model});
    await api('/v1/jobs/'+job.id+'/result','POST',{status:'completed',content});
    completed++;
   }catch(error){
