@@ -99,3 +99,7 @@ Before creating jobs, run `npm run bridge:check-ollama` in PowerShell. It checks
 ## One-command local Ollama Messenger (PR #117)
 
 With Ollama already running on Windows 11, update the repository and run `npm.cmd run chat:local`. Open `http://127.0.0.1:8787` in the **same computer's** browser and chat in Thai with the locally installed `qwen2.5:latest` model. No bridge token, job creation, separate approval window, paid API, or shell execution is needed for this **text-only** chat. Messages are processed locally and not persisted by this server. This standalone local Messenger is separate from the public GitHub Pages Messenger and does not expose a public endpoint. For tasks with privileged side effects, continue using the approval-gated Bridge workflow.
+
+## Local multi-agent Messenger (PR #118)
+
+Run `npm.cmd run chat:local` after `git pull origin main`, then open `http://127.0.0.1:8787/`. Choose among seven Thai AI employee roles. Each role has its own **in-memory** conversation history, with a short recent context sent to the local Ollama model. Chat histories are cleared when the server page is reloaded and are never saved to disk or sent to cloud services. The compact interface uses a nostalgic MSN-style sidebar and message bubbles. The agents are role-specific text assistants, **not** independent Windows automation agents.
