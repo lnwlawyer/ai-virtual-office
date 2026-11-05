@@ -54,3 +54,7 @@ The public GitHub Pages chat remains a **simulation**; local pairing, per-agent 
 ## Persistent local bridge state (PR #111)
 
 Set `LOCAL_BRIDGE_STORAGE_PATH` to a private local JSON file path to enable opt-in persistence across restarts. Without it, jobs remain in memory as before. The bridge stores a maximum of 100 jobs using atomic replacement and restrictive file permissions where supported. An invalid/corrupt state file prevents startup instead of silently discarding pending approvals. Keep the state file outside web roots, synced public folders, and the Git repository; it contains prompts and results. Back it up and protect it as sensitive data. This is a state snapshot, **not** a tamper-evident audit log. Concurrent bridge processes must not share a storage path. Local operator approval is still required, and no shell commands are executed.
+
+## Local bridge status overview (PR #112)
+
+The authenticated local-only `GET /v1/status` endpoint reports queue totals, per-role job counts and recent job metadata. It deliberately excludes prompts, results and the bridge token. `connectedDevices: 0`, `connection: "not_connected"` and `execution: "manual_only"` accurately reflect the current implementation: no remote agent, Windows terminal, Mac mini or public web dashboard is connected yet. The existing local operator still performs manual approvals. Use this endpoint only on the trusted loopback host with the private bearer token. Future device presence and remote pairing require a separate security review.
