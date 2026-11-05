@@ -11,6 +11,7 @@
     "bridge:status": "node local-bridge/export-status.js",
     "bridge:ollama": "node local-bridge/ollama-worker.js",
     "bridge:create": "node local-bridge/create-job.js",
+    "bridge:check-ollama": "node local-bridge/check-ollama.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {
