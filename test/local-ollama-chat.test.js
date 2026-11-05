@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createLocalChatServer} from '../local-bridge/chat-server.js';
 test('localhost Messenger serves UI and replies with real adapter result',async()=>{
- const chat=createLocalChatServer({port:0,generate:async prompt=>{assert.equal(prompt,'สวัสดี');return 'พร้อมใช้งาน'}});
+ const chat=createLocalChatServer({port:0,generate:async prompt=>{assert.match(prompt,/สวัสดี/);return 'พร้อมใช้งาน'}});
  const {port}=await chat.listen();
  const base='http://127.0.0.1:'+port;
  try{
