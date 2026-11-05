@@ -105,3 +105,22 @@
 .msn-quick-prompt-items .msn-prompt-append{display:inline-flex}
 .msn-clear-draft{margin:2px 0 5px}
 @media(max-width:760px){.msn-shell{height:auto;min-height:0}.msn-chat{height:620px}.msn-chat-top{padding:8px 10px}.msn-conversation{min-height:130px;padding:10px}.msn-advanced-tools[open]{max-height:45%}.msn-composer{padding:8px 10px}}
+
+
+/* Wider chat, narrower staff list, and compact optional roster filters. */
+@media(min-width:761px){
+ .msn-shell{grid-template-columns:220px minmax(0,1fr)}
+}
+.msn-message{max-width:92%}
+.msn-roster-filters{border-bottom:1px solid #bad2e8;background:#eef6ff;font-size:12px}
+.msn-roster-filters>summary{cursor:pointer;padding:8px 11px;color:#185d96;font-weight:700}
+.msn-roster-filter-content{padding:0 0 7px}
+.msn-roster-filter-content .msn-search{padding:6px 10px}
+.msn-roster-filter-content .msn-search input{padding:7px;margin-top:4px}
+.msn-roster-filter-content .msn-active-only{padding:5px 10px}
+.msn-roster-filter-content .msn-sort-contacts{padding:5px 10px}
+.msn-roster-filter-content .msn-roster-reset{margin:4px 10px}
+@media(max-width:760px){
+ .msn-roster-filters>summary{padding:7px 10px}
+ .msn-message{max-width:94%}
+}
