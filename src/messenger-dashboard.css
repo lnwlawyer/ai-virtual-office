@@ -151,3 +151,13 @@
  .msn-roster{max-height:200px}
  .msn-title{padding:8px 10px}
 }
+
+/* Restore readable employee list width while retaining compact optional controls. */
+@media(min-width:761px){
+ .msn-shell{grid-template-columns:minmax(0,280px) minmax(0,1fr)}
+ .msn-roster{width:280px;max-width:280px;min-width:0}
+ .msn-chat{min-width:0}
+}
+.msn-contact-text{min-width:0;flex:1}
+.msn-contact-text strong,.msn-contact-text small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msn-contact{min-width:0}

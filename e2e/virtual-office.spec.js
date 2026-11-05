@@ -835,7 +835,8 @@ test('Messenger keeps employee filters compact and widens the desktop chat',asyn
   shell:el.getBoundingClientRect().width
  }));
  if(await page.evaluate(()=>window.innerWidth>760)){
-  expect(layout.roster).toBeLessThanOrEqual(221);
+  expect(layout.roster).toBeGreaterThanOrEqual(279);
+  expect(layout.roster).toBeLessThanOrEqual(281);
   expect(layout.shell-layout.roster).toBeGreaterThan(250);
  }
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ตรวจสอบพื้นที่แชท');
@@ -853,6 +854,7 @@ test('Messenger sidebar hides bulk controls until requested',async({page})=>{
  await expect(page.getByRole('button',{name:'ส่งออกทุกบทสนทนา JSON'})).toBeVisible();
  if(await page.evaluate(()=>window.innerWidth>760)){
   const width=await page.locator('.msn-roster').evaluate(el=>el.getBoundingClientRect().width);
-  expect(width).toBeLessThanOrEqual(185);
+  expect(width).toBeGreaterThanOrEqual(279);
+  expect(width).toBeLessThanOrEqual(281);
  }
 });
