@@ -66,3 +66,18 @@ The public frontend displays a **read-only, manually pasted** JSON report from t
 ## Export a local bridge status snapshot (PR #114)
 
 With the local bridge running and `LOCAL_BRIDGE_TOKEN` configured in your terminal environment, run `npm run bridge:status`. The command reads the localhost-only `/v1/status` endpoint and prints **sanitized** JSON to standard output; copy the output into **Agent Control Room** on the website. It does not send the report to any cloud endpoint. Do not paste your token, terminal environment variables, or full job details. Status remains a manually refreshed snapshot; it does not pair machines or run commands.
+
+## Local Ollama MVP (PR #115)
+
+The local worker uses `http://127.0.0.1:11434/api/generate` with `stream:false`, default model `qwen2.5:latest` (override via `OLLAMA_MODEL`). **It never executes shell commands or uses Ollama tools.** It processes **only** jobs previously approved in the Local Bridge.
+
+On Windows PowerShell, with Ollama running and the model downloaded:
+
+```powershell
+$env:LOCAL_BRIDGE_TOKEN = 'replace-with-a-private-random-token-at-least-32-characters'
+$env:LOCAL_BRIDGE_STORAGE_PATH = "$HOME\\.ai-virtual-office\\jobs.json"
+npm install
+node local-bridge/server.js
+```
+
+In a second PowerShell terminal, set the **same** token, then run `node local-bridge/operator.js` to inspect and approve a job (the original operator also requests manual results, so for an Ollama-run job approve directly using the authenticated local `POST /v1/jobs/:id/decision` endpoint instead). Once approved, run `npm run bridge:ollama`. This is a **one-shot** worker, not a background agent. Results are stored in the bridge and visible through authenticated `GET /v1/jobs/:id`. The GitHub Pages Messenger remains mock-only and is not connected to Ollama. Do not expose ports 8765 or 11434 to public networks, and never put the token in frontend environment variables.
