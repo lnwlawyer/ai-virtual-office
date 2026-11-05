@@ -58,3 +58,7 @@ Set `LOCAL_BRIDGE_STORAGE_PATH` to a private local JSON file path to enable opt-
 ## Local bridge status overview (PR #112)
 
 The authenticated local-only `GET /v1/status` endpoint reports queue totals, per-role job counts and recent job metadata. It deliberately excludes prompts, results and the bridge token. `connectedDevices: 0`, `connection: "not_connected"` and `execution: "manual_only"` accurately reflect the current implementation: no remote agent, Windows terminal, Mac mini or public web dashboard is connected yet. The existing local operator still performs manual approvals. Use this endpoint only on the trusted loopback host with the private bearer token. Future device presence and remote pairing require a separate security review.
+
+## Agent Control Room: bridge status report (PR #113)
+
+The public frontend displays a **read-only, manually pasted** JSON report from the authenticated local `GET /v1/status` endpoint. The page validates and sanitizes the report before rendering counts, per-agent queues and recent job IDs. No token, prompts or results should be pasted. This is a snapshot, **not** live presence or machine pairing. Windows 11 and Mac mini remain disconnected. The browser does not call localhost, store the bearer token, or execute commands. Obtain the report using a trusted local client that keeps the token private; never share the token or full job payload.
