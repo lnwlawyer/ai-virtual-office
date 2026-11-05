@@ -81,3 +81,13 @@ node local-bridge/server.js
 ```
 
 In a second PowerShell terminal, set the **same** token, then run `node local-bridge/operator.js` to inspect and approve a job (the original operator also requests manual results, so for an Ollama-run job approve directly using the authenticated local `POST /v1/jobs/:id/decision` endpoint instead). Once approved, run `npm run bridge:ollama`. This is a **one-shot** worker, not a background agent. Results are stored in the bridge and visible through authenticated `GET /v1/jobs/:id`. The GitHub Pages Messenger remains mock-only and is not connected to Ollama. Do not expose ports 8765 or 11434 to public networks, and never put the token in frontend environment variables.
+
+### First local end-to-end run
+
+1. Start Ollama and the bridge as above. Open a second terminal with the same `LOCAL_BRIDGE_TOKEN`.
+2. Run `npm run bridge:create` and enter a role and prompt.
+3. Set `$env:LOCAL_BRIDGE_APPROVAL_ONLY = '1'` in PowerShell, then run `node local-bridge/operator.js` to inspect and approve the job.
+4. Run `npm run bridge:ollama` to generate a real local model response. The worker records completed/failed results in the bridge.
+5. Run `npm run bridge:status` to view status. To read full output use authenticated local `GET /v1/jobs/:id`.
+
+This first milestone runs locally on Windows and requires user action on the computer. It is not yet integrated into public Messenger and is not a claim that any local machine was tested remotely.
