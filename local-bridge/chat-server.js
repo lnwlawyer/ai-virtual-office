@@ -7,6 +7,9 @@ import {buildAgentPrompt} from './chat-roles.js';
 import {createBridgeServer} from './server.js';
 import {processApprovedJobs} from './ollama-worker.js';
 import {randomBytes} from 'node:crypto';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {homedir} from 'node:os';
 const htmlPath=fileURLToPath(new URL('./chat.html',import.meta.url));
 export function createLocalChatServer({port=8787,generate=generateWithOllama,model=process.env.OLLAMA_MODEL||'qwen2.5:latest',bridgeToken=process.env.LOCAL_BRIDGE_TOKEN,bridgePort=8765}={}){
  let active=false;
@@ -22,6 +25,25 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
    const token=bridgeToken;
    if(!token||token.length<32)return reply(200,{connected:false,reason:'Bridge token not configured'});
    try{const response=await fetch('http://127.0.0.1:'+bridgePort+'/v1/status',{headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(2500)});if(!response.ok)return reply(200,{connected:false,reason:'Bridge authentication or service unavailable'});const data=await response.json();return reply(200,{connected:true,status:data})}catch{return reply(200,{connected:false,reason:'Bridge is not running'})}
+  }
+  if(req.url?.startsWith('/api/jobs/')){
+   const exportMatch=/^\/api\/jobs\/([0-9a-f-]{36})\/export$/.exec(req.url);
+   if(exportMatch){
+    if(req.method!=='POST')return reply(405,{error:'Method not allowed'});
+    if(req.headers.origin!==expected)return reply(403,{error:'Same-origin required'});
+    if(!bridgeToken||bridgeToken.length<32)return reply(503,{error:'Bridge unavailable'});
+    try{
+     const result=await fetch('http://127.0.0.1:'+bridgePort+'/v1/jobs/'+exportMatch[1],{headers:{Authorization:'Bearer '+bridgeToken},signal:AbortSignal.timeout(4000)});
+     if(!result.ok)return reply(result.status,{error:'Job not found'});
+     const job=await result.json();
+     if(job.status!=='completed'||typeof job.content!=='string')return reply(409,{error:'Only completed jobs can be exported'});
+     const dir=join(homedir(),'Documents','AI-Virtual-Office','exports');
+     await mkdir(dir,{recursive:true});
+     const filename='job-'+job.id+'.txt';
+     await writeFile(join(dir,filename),job.content,{encoding:'utf8',flag:'wx'});
+     return reply(201,{saved:true,filename,folder:'Documents/AI-Virtual-Office/exports'});
+    }catch(error){return reply(error.code==='EEXIST'?409:500,{error:error.code==='EEXIST'?'Already exported':'Unable to export'})}
+   }
   }
   if(req.url?.startsWith('/api/jobs')){
    if(!bridgeToken||bridgeToken.length<32)return reply(503,{error:'Bridge unavailable'});
