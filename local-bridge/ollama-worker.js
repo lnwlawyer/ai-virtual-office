@@ -21,7 +21,7 @@ export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest
    completed++;
   }catch(error){
    // Do not expose sensitive prompt or server internals in job results.
-   const safe=/^Workflow failed at (analyst|writer|reviewer|manager) \((timeout|model_not_found|ollama_unavailable|generation_error|empty_response)\)$/.test(error?.message||'')?error.message:'Local Ollama generation failed';
+   const safe=/^Workflow failed at (analyst|writer|reviewer|manager|legal|developer|designer) \((timeout|model_not_found|ollama_unavailable|generation_error|empty_response)\)$/.test(error?.message||'')?error.message:/^Bridge returned HTTP (400|409|413|429|500|502|503)$/.test(error?.message||'')?'Workflow progress or result rejected by Bridge ('+error.message+')':'Local Ollama generation failed';
    await api('/v1/jobs/'+job.id+'/result','POST',{status:'failed',content:safe});
    failed++;
   }
