@@ -97,6 +97,6 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  const token=process.env.LOCAL_BRIDGE_TOKEN||randomBytes(32).toString('hex');
- const bridge=createBridgeServer({token,port:8765});
- bridge.listen().then(()=>createLocalChatServer({bridgeToken:token}).listen()).then(address=>console.log('Open http://127.0.0.1:'+address.port+' (Messenger + local approval queue)')).catch(error=>{console.error(error.message);process.exitCode=1});
+ const bridge=createBridgeServer({token,port:8765,storagePath:process.env.LOCAL_BRIDGE_STORAGE_PATH||join(homedir(),'Documents','AI-Virtual-Office','bridge-jobs.json')});
+ bridge.listen().then(async()=>{const chat=createLocalChatServer({bridgeToken:token});const address=await chat.listen();void processApprovedJobs({token,port:8765}).catch(error=>console.error('Recovery worker:',error.message));return address}).then(address=>console.log('Open http://127.0.0.1:'+address.port+' (Messenger + persistent approval queue)')).catch(error=>{console.error(error.message);process.exitCode=1});
 }
