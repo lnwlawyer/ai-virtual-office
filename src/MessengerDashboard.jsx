@@ -81,7 +81,10 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  useEffect(()=>{if(!local)return;refreshJobs();const id=setInterval(refreshJobs,2000);return()=>clearInterval(id)},[local]);
  async function decide(job,decision){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id)+'/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({decision})});if(!r.ok)throw Error();await refreshJobs()}catch{setJobError('ไม่สามารถดำเนินการอนุมัติได้')}}
  async function viewJob(job){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id));if(!r.ok)throw Error();setJobDetail(await r.json())}catch{setJobError('ไม่สามารถอ่านผลการทำงานได้')}}
- const managerIntroduction=message=>/^(?:(?:สวัสดี|หวัดดี|hello|hi|ทักทาย)[^\\n]{0,120})?(?:ช่วย)?(?:แนะนำตัว|คุณเป็นใคร|อธิบายหน้าที่(?:ของคุณ)?|คุณทำอะไรได้บ้าง|ช่วยอะไรได้บ้าง)/i.test(message.trim()) || /^(?:สวัสดี|หวัดดี|hello|hi|คุณเป็นใคร|แนะนำตัว)[\\s!?.ฯ]*$/i.test(message.trim());
+ const managerIntroduction=message=>{
+  const value=message.trim();
+  return /สวัสดี|หวัดดี|แนะนำตัว|คุณเป็นใคร|อธิบายหน้าที่|หน้าที่ของคุณ|ช่วยอะไรได้บ้าง|ทำอะไรได้บ้าง|hello|hi/i.test(value) && !/จัดทำรายงาน|ตรวจสอบสัญญา|แก้ไขโค้ด|สร้างไฟล์|พัฒนาเว็บไซต์/i.test(value);
+ };
  const managerIntroductionReply='สวัสดีครับ ผมเป็นผู้จัดการสำนักงาน AI ของ AI Virtual Office ทำหน้าที่รับคำถาม ประสานงาน และจัดสรรงานให้พนักงาน AI ตามความเหมาะสม ผมสามารถตอบคำถามทั่วไปโดยตรง ช่วยวางแผนและสรุปงาน รวมถึงมอบหมายงานเฉพาะทางให้ฝ่ายกฎหมาย เอกสาร วิเคราะห์ข้อมูล ออกแบบ พัฒนาระบบ และตรวจสอบคุณภาพได้เมื่อคุณสั่งงาน ทั้งนี้ผมเป็นผู้ช่วย AI ในแอป ไม่ใช่ตัวแทนของผู้พัฒนาโมเดล';
  const taskIntent=message=>{
   const value=message.trim();
