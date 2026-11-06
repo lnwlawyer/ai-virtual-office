@@ -8,9 +8,11 @@ import {createBridgeServer} from './server.js';
 import {processApprovedJobs} from './ollama-worker.js';
 import {randomBytes} from 'node:crypto';
 import {mkdir,writeFile,readdir,stat} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join,resolve,sep,extname} from 'node:path';
 import {homedir} from 'node:os';
 const htmlPath=fileURLToPath(new URL('./chat.html',import.meta.url));
+const localDist=resolve(fileURLToPath(new URL('../dist/',import.meta.url)));
+const staticTypes={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.woff2':'font/woff2'};
 export function createLocalChatServer({port=8787,generate=generateWithOllama,model=process.env.OLLAMA_MODEL||'qwen2.5:latest',bridgeToken=process.env.LOCAL_BRIDGE_TOKEN,bridgePort=8765}={}){
  let active=false;
  const server=http.createServer(async(req,res)=>{
@@ -74,6 +76,16 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
     }
     return reply(response.status,result);
    }catch{return reply(502,{error:'Bridge unavailable'})}
+  }
+  if(req.method==='GET'&&req.url?.startsWith('/office/')){
+   const requested=req.url.split('?')[0];
+   let decoded;try{decoded=decodeURIComponent(requested)}catch{return reply(400,{error:'Invalid path'})}
+   if(decoded.includes('\\\\')||decoded.includes('\\0')||decoded.split('/').includes('..'))return reply(403,{error:'Invalid path'});
+   const relative=decoded==='/office/'?'index.html':decoded.slice('/office/'.length);
+   const file=resolve(localDist,relative);
+   if(!file.startsWith(localDist+sep))return reply(403,{error:'Invalid path'});
+   const type=staticTypes[extname(file)];if(!type)return reply(404,{error:'Not found'});
+   try{const page=await readFile(file);res.writeHead(200,{...headers,'Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'",'Content-Type':type});return res.end(page)}catch{return reply(404,{error:'Local dashboard not built'})}
   }
   if(req.method==='GET'&&req.url==='/'){const page=await readFile(htmlPath);res.writeHead(200,{...headers,'Content-Type':'text/html; charset=utf-8'});return res.end(page)}
   if(req.method==='POST'&&req.url==='/api/chat'){
