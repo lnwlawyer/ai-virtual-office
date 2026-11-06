@@ -6,7 +6,7 @@ test.beforeEach(async({page})=>{
  });
  await page.route('**/api/jobs',async route=>{
   if(route.request().method()==='GET')await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobs:[]})});
-  else await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({id:'11111111-1111-4111-8111-111111111111',status:'awaiting_approval'})});
+  else await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({id:'11111111-1111-4111-8111-111111111111',status:'approved',autoStarted:true})});
  });
 });
 async function openOffice(page){
@@ -891,9 +891,10 @@ test('Messenger submits multi-agent project into approval queue rather than exec
  await page.getByLabel('รูปแบบคำสั่ง').selectOption('project');
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('วิเคราะห์โครงการทดสอบ');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
- await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('รออนุมัติ');
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('เริ่มประมวลผล');
  await expect.poll(()=>submitted?.prompt).toContain('PROJECT_V1:');
  expect(submitted.agentRole).toBe('manager');
+ expect(submitted.autoStart).toBe(true);
 });
 
 test('manager delegates natural-language legal request into actual legal approval queue',async({page})=>{
@@ -910,7 +911,8 @@ test('manager delegates natural-language legal request into actual legal approva
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  await expect.poll(()=>created?.agentRole).toBe('legal');
  expect(created.prompt).toContain('ตรวจสอบประเด็นสิทธิในที่ดิน');
- await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('รอการอนุมัติ');
+ expect(created.autoStart).toBe(true);
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('ส่งงานให้');
 });
 test('ordinary manager conversation does not create a delegated job',async({page})=>{
  let posted=0;
