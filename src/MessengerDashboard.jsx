@@ -81,6 +81,8 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  useEffect(()=>{if(!local)return;refreshJobs();const id=setInterval(refreshJobs,2000);return()=>clearInterval(id)},[local]);
  async function decide(job,decision){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id)+'/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({decision})});if(!r.ok)throw Error();await refreshJobs()}catch{setJobError('ไม่สามารถดำเนินการอนุมัติได้')}}
  async function viewJob(job){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id));if(!r.ok)throw Error();setJobDetail(await r.json())}catch{setJobError('ไม่สามารถอ่านผลการทำงานได้')}}
+ const managerIntroduction=message=>/^(?:(?:สวัสดี|หวัดดี|hello|hi|ทักทาย)[^\\n]{0,120})?(?:ช่วย)?(?:แนะนำตัว|คุณเป็นใคร|อธิบายหน้าที่(?:ของคุณ)?|คุณทำอะไรได้บ้าง|ช่วยอะไรได้บ้าง)/i.test(message.trim()) || /^(?:สวัสดี|หวัดดี|hello|hi|คุณเป็นใคร|แนะนำตัว)[\\s!?.ฯ]*$/i.test(message.trim());
+ const managerIntroductionReply='สวัสดีครับ ผมเป็นผู้จัดการสำนักงาน AI ของ AI Virtual Office ทำหน้าที่รับคำถาม ประสานงาน และจัดสรรงานให้พนักงาน AI ตามความเหมาะสม ผมสามารถตอบคำถามทั่วไปโดยตรง ช่วยวางแผนและสรุปงาน รวมถึงมอบหมายงานเฉพาะทางให้ฝ่ายกฎหมาย เอกสาร วิเคราะห์ข้อมูล ออกแบบ พัฒนาระบบ และตรวจสอบคุณภาพได้เมื่อคุณสั่งงาน ทั้งนี้ผมเป็นผู้ช่วย AI ในแอป ไม่ใช่ตัวแทนของผู้พัฒนาโมเดล';
  const taskIntent=message=>{
   const value=message.trim();
   if(/สวัสดี|แนะนำตัว|คุณเป็นใคร|ทำอะไรได้บ้าง|ช่วยอะไรได้บ้าง|ทำหน้าที่อะไร|คืออะไร|หมายถึงอะไร|ขอบคุณ|ทักทาย/i.test(value))return false;
@@ -169,6 +171,10 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   const sent={id:crypto.randomUUID(),who:'user',text,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
   setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),sent]}));setDraft('');setPending(true);
   try{
+   if(role==='manager'&&managerIntroduction(text)){
+    const response={id:crypto.randomUUID(),who:'agent',text:managerIntroductionReply,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));return;
+   }
    const delegation=jobMode==='chat'&&role==='manager'&&taskIntent(text)?await planManagerTask(text):null;
    if(delegation){
     const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text,autoStart:true})});
