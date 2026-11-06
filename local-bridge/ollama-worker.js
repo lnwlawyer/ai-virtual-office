@@ -1,6 +1,7 @@
 // Explicit opt-in local worker: processes only jobs already approved by the operator.
 import {generateWithOllama} from './ollama-adapter.js';
 import {parseWorkflow,runWorkflow} from './multi-agent-workflow.js';
+import {parseProject,runProject} from './project-workflow.js';
 const BASE='http://127.0.0.1:';
 export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest',fetchImpl=fetch,generate=generateWithOllama}={}){
  if(typeof token!=='string'||token.length<32)throw new Error('LOCAL_BRIDGE_TOKEN is required');
@@ -16,12 +17,13 @@ export async function processApprovedJobs({token,port=8765,model='qwen2.5:latest
   const job=await api('/v1/jobs/'+entry.id);
   if(job.status!=='approved')continue;
   try{
-   const content=parseWorkflow(job.prompt)?await runWorkflow(job.prompt,{generate,model,onProgress:progress=>api('/v1/jobs/'+job.id+'/progress','POST',progress)}):await generate(job.prompt,{model});
+   const options={generate,model,onProgress:progress=>api('/v1/jobs/'+job.id+'/progress','POST',progress)};
+   const content=parseProject(job.prompt)?await runProject(job.prompt,options):parseWorkflow(job.prompt)?await runWorkflow(job.prompt,options):await generate(job.prompt,{model});
    await api('/v1/jobs/'+job.id+'/result','POST',{status:'completed',content});
    completed++;
   }catch(error){
    // Do not expose sensitive prompt or server internals in job results.
-   const safe=/^Workflow quality gate rejected \((review_not_passed|revision_limit)\)$/.test(error?.message||'')?error.message:/^Workflow progress failed at (analyst|writer|reviewer|manager|legal|developer|designer) \(bridge_error\)$/.test(error?.message||'')?error.message:/^Workflow failed at (analyst|writer|reviewer|manager|legal|developer|designer) \((timeout|model_not_found|ollama_unavailable|generation_error|empty_response)\)$/.test(error?.message||'')?error.message:/^Bridge returned HTTP (400|409|413|429|500|502|503)$/.test(error?.message||'')?'Workflow progress or result rejected by Bridge ('+error.message+')':'Local Ollama generation failed';
+   const safe=/^Project quality gate rejected \(revision_limit\)$/.test(error?.message||'')?error.message:/^Workflow quality gate rejected \((review_not_passed|revision_limit)\)$/.test(error?.message||'')?error.message:/^Workflow progress failed at (analyst|writer|reviewer|manager|legal|developer|designer) \(bridge_error\)$/.test(error?.message||'')?error.message:/^Workflow failed at (analyst|writer|reviewer|manager|legal|developer|designer) \((timeout|model_not_found|ollama_unavailable|generation_error|empty_response)\)$/.test(error?.message||'')?error.message:/^Bridge returned HTTP (400|409|413|429|500|502|503)$/.test(error?.message||'')?'Workflow progress or result rejected by Bridge ('+error.message+')':'Local Ollama generation failed';
    await api('/v1/jobs/'+job.id+'/result','POST',{status:'failed',content:safe});
    failed++;
   }
