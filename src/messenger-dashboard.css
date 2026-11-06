@@ -194,3 +194,28 @@
 .msn-composer textarea{min-height:58px;max-height:130px}
 .msn-composer .msn-clear-draft{margin:0 0 3px}
 @media(max-width:760px){.msn-chat{height:660px}.msn-conversation{min-height:170px}.msn-composer-controls{gap:5px}.msn-composer textarea{min-height:58px}}
+
+
+/* Messenger compact chrome: calm surfaces and one-line utility controls. */
+.msn-chat{background:#f7f9fc}
+.msn-chat-top{background:#f0f5fb;border-bottom:1px solid #dbe5f0}
+.msn-chat-toolbar{background:#fff;color:#536477;border-bottom:1px solid #e2e8f0;font-size:11px;min-height:24px}
+.msn-toolbar-hint{margin-left:auto;color:#8290a0}
+.msn-advanced-tools,.msn-staff-tasks,.msn-approval-queue{background:#fff;border-bottom:1px solid #e2e8f0}
+.msn-advanced-tools>summary,.msn-staff-tasks>summary,.msn-approval-queue>summary{padding:5px 12px;color:#526b83;font-weight:500;font-size:11px}
+.msn-conversation{background:#fff;min-height:220px}
+.msn-composer{background:#f2f6fa;border-top:1px solid #d9e3ec;padding:7px 12px 8px}
+.msn-composer-controls{display:flex!important;align-items:center!important;justify-content:flex-start!important;flex-wrap:wrap;gap:6px!important;margin:0 0 5px!important}
+.msn-composer-controls>label{font-size:11px;color:#506477;font-weight:500}
+.msn-composer-controls select{font-size:11px;max-width:220px;border:1px solid #d3dfe9;background:#fff;border-radius:6px;padding:4px 7px}
+.msn-composer-controls .msn-provider-settings,.msn-composer-controls .msn-quick-prompts{flex:0 0 auto;margin:0}
+.msn-composer-controls .msn-provider-settings>summary,.msn-composer-controls .msn-quick-prompts>summary{font-size:11px;font-weight:500;color:#536b81;padding:5px 7px;border-radius:5px}
+.msn-composer-controls .msn-provider-settings>summary:hover,.msn-composer-controls .msn-quick-prompts>summary:hover{background:#e1eaf3}
+.msn-compose-heading{display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px!important}
+.msn-compose-heading label{font-size:11px;color:#506477;margin:0}
+.msn-compose-heading .msn-clear-draft{margin:0!important;padding:2px 7px;font-size:10px}
+.msn-composer textarea{min-height:54px;max-height:115px;box-sizing:border-box;background:#fff;border:1px solid #cbd9e6;border-radius:7px;padding:9px 10px}
+.msn-composer>div:last-child{margin-top:4px}
+.msn-composer>div:last-child small{font-size:10px;color:#6e7f91}
+.msn-message{border-radius:9px}
+@media(max-width:760px){.msn-composer-controls select{max-width:175px}.msn-toolbar-hint{display:none}.msn-conversation{min-height:160px}}
