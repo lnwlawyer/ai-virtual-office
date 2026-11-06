@@ -13,7 +13,7 @@ For Each proc In processes
     If result = 0 Then count = count + 1
   End If
 Next
-If count = 0 Then
+If WScript.Arguments.Count > 0 Then\n  If LCase(WScript.Arguments(0)) = "/quiet" Then WScript.Quit 0\nEnd If\nIf count = 0 Then
   MsgBox "No matching AI Virtual Office server was found. Other Node.js processes were not touched.", 64, "AI Virtual Office"
 Else
   MsgBox "AI Virtual Office server stopped. You can reopen it from the Desktop shortcut.", 64, "AI Virtual Office"
