@@ -19,10 +19,19 @@ test('review rejection triggers one revision and second review before manager',a
  assert.match(result,/manager/);
  assert.match(result,/VERDICT: PASS/);
 });
-test('two rejected reviews block manager',async()=>{
+test('rejected reviews return unapproved draft without calling manager',async()=>{
  let calls=0;
- await assert.rejects(runWorkflow(createWorkflowV2('แก้บั๊กเว็บไซต์'),{model:'mock',generate:async prompt=>{calls++;return prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE')?'VERDICT: REVISE\nยังผิด':'ร่าง';}}),/revision_limit/);
- assert.equal(calls,4);
+ let reviews=0;
+ const result=await runWorkflow(createWorkflowV2('แก้บั๊กเว็บไซต์'),{model:'mock',generate:async prompt=>{
+  calls++;
+  if(prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE')){reviews++;return 'VERDICT: REVISE\\nยังผิด';}
+  return 'ร่าง';
+ }});
+ assert.equal(reviews,3);
+ assert.equal(calls,8);
+ assert.match(result,/ยังไม่ผ่านการตรวจสอบคุณภาพ/);
+ assert.match(result,/ยังผิด/);
+ assert.doesNotMatch(result,/รายงานฉบับสุดท้าย \(ผ่านการตรวจทานภายใน AI\)/);
 });
 test('V1 remains compatible with unstructured reviewer response',async()=>{
  let count=0;
