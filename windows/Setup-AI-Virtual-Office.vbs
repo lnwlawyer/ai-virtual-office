@@ -51,6 +51,18 @@ link.Arguments = """" & fso.BuildPath(root, "windows\Launch-AI-Virtual-Office.vb
 link.WorkingDirectory = root
 link.Description = "Open AI Virtual Office without PowerShell"
 link.Save
+Set link = shell.CreateShortcut(fso.BuildPath(desktop, "Stop AI Virtual Office.lnk"))
+link.TargetPath = shell.ExpandEnvironmentStrings("%SystemRoot%") & "\\System32\\wscript.exe"
+link.Arguments = """" & fso.BuildPath(root, "windows\\Stop-AI-Virtual-Office.vbs") & """"
+link.WorkingDirectory = root
+link.Description = "Stop only the AI Virtual Office local server"
+link.Save
+Set link = shell.CreateShortcut(fso.BuildPath(desktop, "Restart AI Virtual Office.lnk"))
+link.TargetPath = shell.ExpandEnvironmentStrings("%SystemRoot%") & "\\System32\\wscript.exe"
+link.Arguments = """" & fso.BuildPath(root, "windows\\Restart-AI-Virtual-Office.vbs") & """"
+link.WorkingDirectory = root
+link.Description = "Restart AI Virtual Office without PowerShell"
+link.Save
 answer = MsgBox("Setup completed. Start automatically when signing in to Windows?", 36, "AI Virtual Office")
 startup = shell.SpecialFolders("Startup")
 If answer = 6 Then
