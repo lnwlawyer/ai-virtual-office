@@ -962,3 +962,16 @@ test('manager automatically receives delegated job result in original chat exact
  const report=page.getByText(/รายงานจากผู้จัดการ · งานเสร็จแล้ว/);
  await expect(report).toHaveCount(1);
 });
+
+test('Messenger lets user select configured cloud model for chat',async({page})=>{
+ let payload=null;
+ await page.route('**/api/providers',async route=>await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({providers:[{id:'local',name:'Ollama (Local)',type:'local',model:'qwen2.5:latest'},{id:'gemini-test',name:'Gemini งานเอกสาร',type:'gemini',model:'gemini-2.5-flash'}]})}));
+ await page.route('**/api/chat',async route=>{payload=route.request().postDataJSON();await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({content:'คำตอบจากโมเดลที่เลือก'})})});
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByLabel('เลือกโมเดล AI').selectOption('gemini-test');
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('สวัสดี');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect.poll(()=>payload?.providerId).toBe('gemini-test');
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('คำตอบจากโมเดลที่เลือก');
+});
