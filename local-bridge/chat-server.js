@@ -22,7 +22,11 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
   const validOrigin=!req.headers.origin||req.headers.origin===expected;
   const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'self'",'Referrer-Policy':'no-referrer'};
   function reply(status,value){res.writeHead(status,{...headers,'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value))}
-  if(!validHost||!validOrigin||req.headers['sec-fetch-site']&&!['same-origin','none'].includes(req.headers['sec-fetch-site']))return reply(403,{error:'Local browser only'});
+  // External sites may link to a local document, but may not call local APIs or mutate state.
+  const fetchSite=req.headers['sec-fetch-site'];
+  const documentNavigation=req.method==='GET'&&req.headers['sec-fetch-mode']==='navigate'&&req.headers['sec-fetch-dest']==='document'&&(/^(\/|\/office\/(?:[^?]*)?)(?:\?.*)?$/.test(req.url||''));
+  const trustedSite=!fetchSite||['same-origin','none'].includes(fetchSite);
+  if(!validHost||!validOrigin||(!trustedSite&&!documentNavigation))return reply(403,{error:'Local browser only'});
   if(req.method==='GET'&&req.url==='/api/bridge/status'){
    const token=bridgeToken;
    if(!token||token.length<32)return reply(200,{connected:false,reason:'Bridge token not configured'});
