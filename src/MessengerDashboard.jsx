@@ -171,7 +171,7 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   const sent={id:crypto.randomUUID(),who:'user',text,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
   setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),sent]}));setDraft('');setPending(true);
   try{
-   if(role==='manager'&&managerIntroduction(text)){
+   if(role==='manager'&&providerId==='local'&&managerIntroduction(text)){
     const response={id:crypto.randomUUID(),who:'agent',text:managerIntroductionReply,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));return;
    }
