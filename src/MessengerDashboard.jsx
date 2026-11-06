@@ -123,17 +123,17 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   try{
    const delegation=jobMode==='chat'?delegationFor(role,text):null;
    if(delegation){
-    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text})});
+    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text,autoStart:true})});
     const result=await r.json();if(!r.ok)throw Error(result.error||'ส่งงานไม่สำเร็จ');
-    const response={id:crypto.randomUUID(),who:'agent',text:'สร้างงานสำหรับ '+delegation.label+' ในคิวแล้ว (เลขงาน '+result.id.slice(0,8)+') · รอการอนุมัติจากคุณก่อนเริ่มงาน โปรดเปิดส่วนคิวงาน AI เพื่ออนุมัติ',time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    const response={id:crypto.randomUUID(),who:'agent',text:'ส่งงานให้ '+delegation.label+' แล้ว (เลขงาน '+result.id.slice(0,8)+') · '+(result.autoStarted?'กำลังประมวลผลทันที':'งานนี้ต้องอนุมัติก่อนเริ่ม'),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else if(jobMode!=='chat'){
     const goal=text.slice(0,1500),route=routeFor(goal);
     const prompt=jobMode==='project'?'PROJECT_V1:'+JSON.stringify({version:1,goal,route}):'WORKFLOW_V2:'+JSON.stringify({version:2,goal,route});
-    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt})});
+    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt,autoStart:true})});
     if(!r.ok)throw Error('ไม่สามารถส่งเข้าคิวงาน');
     const result=await r.json();
-    const response={id:crypto.randomUUID(),who:'agent',text:'รับงานเข้าคิวแล้ว รออนุมัติก่อนเริ่มประมวลผล'+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    const response={id:crypto.randomUUID(),who:'agent',text:(result.autoStarted?'เริ่มประมวลผลงานแล้ว':'รับงานเข้าคิวแล้ว งานนี้ต้องอนุมัติก่อนเริ่ม')+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role,prompt:text,history})});
