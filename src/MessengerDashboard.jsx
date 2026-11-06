@@ -44,6 +44,12 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  useEffect(()=>{if(!local)return;refreshJobs();const id=setInterval(refreshJobs,5000);return()=>clearInterval(id)},[local]);
  async function decide(job,decision){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id)+'/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({decision})});if(!r.ok)throw Error();await refreshJobs()}catch{setJobError('ไม่สามารถดำเนินการอนุมัติได้')}}
  async function viewJob(job){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id));if(!r.ok)throw Error();setJobDetail(await r.json())}catch{setJobError('ไม่สามารถอ่านผลการทำงานได้')}}
+ const delegationFor=(role,message)=>{
+  if(role!=='manager'||!/(?:ส่งงาน|มอบหมาย|มอบงาน|สั่งให้|ส่งต่อ|ให้ฝ่าย)/.test(message))return null;
+  const destinations=[['legal',/(?:ฝ่ายกฎหมาย|นักวิจัยกฎหมาย)/],['writer',/(?:ฝ่ายเอกสาร|ฝ่ายเขียน)/],['analyst',/(?:ฝ่ายวิเคราะห์|นักวิเคราะห์)/],['designer',/(?:ฝ่ายออกแบบ|นักออกแบบ)/],['developer',/(?:ฝ่ายพัฒนา|นักพัฒนา)/],['reviewer',/(?:ฝ่ายตรวจสอบ|ผู้ตรวจสอบ)/]];
+  const matches=destinations.filter(([,pattern])=>pattern.test(message));
+  return matches.length===1?{role:matches[0][0],label:STAFF.find(s=>s.id===matches[0][0])?.name||matches[0][0]}:null;
+ };
  const routeFor=goal=>/กฎหมาย|ที่ดิน|มาตรา|คำพิพากษา|legal|law/i.test(goal)?'legal':/โค้ด|โปรแกรม|เว็บไซต์|บั๊ก|code|software|api/i.test(goal)?'development':/ออกแบบ|ภาพ|อินโฟกราฟิก|ui|ux|design/i.test(goal)?'design':'general';
 
  const [exportNotice,setExportNotice]=useState('');
@@ -115,7 +121,13 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   const sent={id:crypto.randomUUID(),who:'user',text,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
   setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),sent]}));setDraft('');setPending(true);
   try{
-   if(jobMode!=='chat'){
+   const delegation=jobMode==='chat'?delegationFor(role,text):null;
+   if(delegation){
+    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text})});
+    const result=await r.json();if(!r.ok)throw Error(result.error||'ส่งงานไม่สำเร็จ');
+    const response={id:crypto.randomUUID(),who:'agent',text:'สร้างงานสำหรับ '+delegation.label+' ในคิวแล้ว (เลขงาน '+result.id.slice(0,8)+') · รอการอนุมัติจากคุณก่อนเริ่มงาน โปรดเปิดส่วนคิวงาน AI เพื่ออนุมัติ',time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
+   }else if(jobMode!=='chat'){
     const goal=text.slice(0,1500),route=routeFor(goal);
     const prompt=jobMode==='project'?'PROJECT_V1:'+JSON.stringify({version:1,goal,route}):'WORKFLOW_V2:'+JSON.stringify({version:2,goal,route});
     const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt})});
