@@ -17,6 +17,13 @@ export function parseWorkflow(prompt){
  if(v2&&(!Object.hasOwn(ROUTES,data.route)||data.route!==routeWorkflow(data.goal)))throw new Error('Invalid workflow route');
  return {goal:data.goal.trim(),version:data.version,...(v2?{route:data.route}:{})};
 }
+export function looksLikePlanningOnly(text){
+ if(typeof text!=='string')return true;
+ const value=text.trim();
+ const planning=/(?:ขั้นตอนที่(?:เรา)?จะดำเนินการ|เริ่มต้นด้วยการรวบรวม|รอรับผลการวิจัย|จะทำการวิเคราะห์|จะดำเนินการ|ขอให้ทีม|ประสานงานกับทีม)/i.test(value);
+ const substance=/(?:ข้อเท็จจริง|ข้อกฎหมาย|หลักกฎหมาย|การวิเคราะห์|ข้อสรุป|ประเด็นกฎหมาย)/i.test(value);
+ return planning&&!substance;
+}
 export function reviewVerdict(text){
  const match=typeof text==='string'?text.match(/^VERDICT:\s*(PASS|REVISE)\s*$/m):null;
  return match?match[1]:'REVISE';
@@ -47,7 +54,8 @@ export async function runWorkflow(prompt,{generate,model,onProgress=async()=>{}}
   outputs.push({role,content:content.slice(0,4500)});
   try{await onProgress({role,stage:index+1,total:stages.length,status:'completed'})}catch{throw new Error('Workflow progress failed at '+role+' (bridge_error)')}
   if(plan.version===2&&role==='reviewer'){
-   if(reviewVerdict(content)==='PASS'){reviewAccepted=true;continue}
+   const draft=outputs.filter(x=>x.role===stages[index-1]).at(-1)?.content||'';
+   if(reviewVerdict(content)==='PASS'&&!looksLikePlanningOnly(draft)){reviewAccepted=true;continue}
    if(revisionCount>=1)throw new Error('Workflow quality gate rejected (revision_limit)');
    revisionCount++;
    const reviseRole=stages[index-1];
