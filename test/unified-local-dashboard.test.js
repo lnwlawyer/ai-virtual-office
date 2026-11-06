@@ -14,3 +14,17 @@ test('local dashboard routes do not expose arbitrary files',async()=>{
   assert.equal(missing.status,404);
  }finally{await server.close()}
 });
+
+test('external top-level navigation is allowed but cross-site APIs remain blocked',async()=>{
+ const server=createLocalChatServer({port:0});
+ const address=await server.listen(),base='http://127.0.0.1:'+address.port;
+ try{
+  const headers={'sec-fetch-site':'cross-site','sec-fetch-mode':'navigate','sec-fetch-dest':'document'};
+  const page=await fetch(base+'/',{headers});
+  assert.equal(page.status,200);
+  const api=await fetch(base+'/api/bridge/status',{headers});
+  assert.equal(api.status,403);
+  const mutation=await fetch(base+'/api/chat',{method:'POST',headers:{'sec-fetch-site':'cross-site','sec-fetch-mode':'cors','origin':'https://example.com','content-type':'application/json'},body:'{}'});
+  assert.equal(mutation.status,403);
+ }finally{await server.close()}
+});
