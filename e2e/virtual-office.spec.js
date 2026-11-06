@@ -482,11 +482,11 @@ test('Messenger simulated response saves to existing Output Library',async({page
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
  await page.locator('.msn-advanced-tools > summary').click();
  await page.locator('.msn-quick-prompts > summary').click();
- await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('สรุปงานประจำวัน');
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('วันนี้มีอะไรบ้าง');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  await page.getByRole('button',{name:'บันทึกคำตอบลงคลังผลงาน'}).click();
  await expect(page.getByText('คำตอบ Messenger · ผู้จัดการสำนักงาน')).toBeVisible();
- await expect(page.getByText('[ผลจำลอง] รับคำสั่งแล้ว: สรุปงานประจำวัน')).toBeVisible();
+ await expect(page.getByText('[ผลจำลอง] รับคำสั่งแล้ว: วันนี้มีอะไรบ้าง')).toBeVisible();
 });
 
 test('Messenger conversations and selected staff survive menu navigation',async({page})=>{
