@@ -22,26 +22,35 @@ End If
 Set script = fso.CreateTextFile(cmdPath, True, False)
 script.WriteLine "@echo off"
 script.WriteLine "cd /d """ & root & """"
-script.WriteLine "echo Installing AI Virtual Office..."
-script.WriteLine installCommand & " > """ & logPath & """ 2>&1"
+script.WriteLine "if errorlevel 1 exit /b 11"
+script.WriteLine "echo === INSTALL START === > """ & logPath & """"
+script.WriteLine "call " & installCommand & " >> """ & logPath & """ 2>&1"
 script.WriteLine "if errorlevel 1 exit /b 10"
-script.WriteLine "npm.cmd run build:local >> """ & logPath & """ 2>&1"
+script.WriteLine "echo === BUILD START === >> """ & logPath & """"
+script.WriteLine "if exist dist\index.html del /q dist\index.html"
+script.WriteLine "call npm.cmd run build:local >> """ & logPath & """ 2>&1"
 script.WriteLine "if errorlevel 1 exit /b 20"
+script.WriteLine "if not exist dist\index.html exit /b 21"
+script.WriteLine "echo === BUILD SUCCESS === >> """ & logPath & """"
 script.WriteLine "exit /b 0"
 script.Close
-code = shell.Run("cmd.exe /d /c """ & cmdPath & """", 0, True)
+code = shell.Run("cmd.exe /d /c """"" & cmdPath & """""", 0, True)
 On Error Resume Next
 fso.DeleteFile cmdPath, True
 On Error GoTo 0
 If code <> 0 Then
   If code = 10 Then
-    MsgBox "Dependency installation failed. See ai-office-setup.log in the project folder.", 16, "AI Virtual Office"
-  ElseIf code = 20 Then
-    MsgBox "Web build failed. See ai-office-setup.log in the project folder.", 16, "AI Virtual Office"
+    MsgBox "Dependency installation failed. See ai-office-setup.log.", 16, "AI Virtual Office"
+  ElseIf code = 20 Or code = 21 Then
+    MsgBox "Web build failed or dist/index.html is missing. See ai-office-setup.log.", 16, "AI Virtual Office"
   Else
-    MsgBox "Setup failed (code " & code & "). See ai-office-setup.log in the project folder.", 16, "AI Virtual Office"
+    MsgBox "Setup failed (code " & code & "). See ai-office-setup.log.", 16, "AI Virtual Office"
   End If
   shell.Run "notepad.exe """ & logPath & """", 1, False
+  WScript.Quit 1
+End If
+If Not fso.FileExists(fso.BuildPath(root, "dist\index.html")) Then
+  MsgBox "Build verification failed: dist/index.html is missing.", 16, "AI Virtual Office"
   WScript.Quit 1
 End If
 desktop = shell.SpecialFolders("Desktop")
