@@ -44,12 +44,19 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  useEffect(()=>{if(!local)return;refreshJobs();const id=setInterval(refreshJobs,5000);return()=>clearInterval(id)},[local]);
  async function decide(job,decision){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id)+'/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({decision})});if(!r.ok)throw Error();await refreshJobs()}catch{setJobError('ไม่สามารถดำเนินการอนุมัติได้')}}
  async function viewJob(job){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id));if(!r.ok)throw Error();setJobDetail(await r.json())}catch{setJobError('ไม่สามารถอ่านผลการทำงานได้')}}
- const delegationFor=(role,message)=>{
-  if(role!=='manager'||!/(?:ส่งงาน|มอบหมาย|มอบงาน|สั่งให้|ส่งต่อ|ให้ฝ่าย)/.test(message))return null;
-  const destinations=[['legal',/(?:ฝ่ายกฎหมาย|นักวิจัยกฎหมาย)/],['writer',/(?:ฝ่ายเอกสาร|ฝ่ายเขียน)/],['analyst',/(?:ฝ่ายวิเคราะห์|นักวิเคราะห์)/],['designer',/(?:ฝ่ายออกแบบ|นักออกแบบ)/],['developer',/(?:ฝ่ายพัฒนา|นักพัฒนา)/],['reviewer',/(?:ฝ่ายตรวจสอบ|ผู้ตรวจสอบ)/]];
-  const matches=destinations.filter(([,pattern])=>pattern.test(message));
-  return matches.length===1?{role:matches[0][0],label:STAFF.find(s=>s.id===matches[0][0])?.name||matches[0][0]}:null;
- };
+ const taskIntent=message=>/(?:ช่วย|ทำ|จัดทำ|ตรวจสอบ|วิเคราะห์|สรุป|ร่าง|ออกแบบ|พัฒนา|แก้ไข|สร้าง|มอบหมาย|ส่งงาน|ให้ฝ่าย|วางแผน|ประเมิน)/.test(message)&&!/(?:คืออะไร|ทำหน้าที่อะไร|หมายถึงอะไร)/.test(message);
+ const fallbackRole=message=>/กฎหมาย|ที่ดิน|มาตรา|คำพิพากษา|สัญญา|legal/i.test(message)?'legal':/โค้ด|โปรแกรม|เว็บไซต์|บั๊ก|API|ซอฟต์แวร์/i.test(message)?'developer':/ออกแบบ|ภาพ|อินโฟกราฟิก|สไลด์/i.test(message)?'designer':/ข้อมูล|สถิติ|ตัวเลข|วิเคราะห์/i.test(message)?'analyst':/เอกสาร|หนังสือ|รายงาน|ร่าง/i.test(message)?'writer':'reviewer';
+ async function planManagerTask(message){
+  const instruction='คุณเป็นผู้จัดการสำนักงาน AI จงเลือกฝ่ายที่เหมาะสมที่สุดสำหรับงานที่ผู้ใช้สั่ง โดยเลือกจาก legal,writer,analyst,designer,developer,reviewer เท่านั้น ตอบ JSON เพียงอย่างเดียวรูปแบบ {"role":"legal","reason":"เหตุผลสั้น"} ห้ามตอบอย่างอื่น งาน: '+message;
+  let chosen=fallbackRole(message),reason='เลือกตามประเภทงาน';
+  try{
+   const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:'manager',prompt:instruction,history:[]})});
+   if(r.ok){const result=await r.json();const match=String(result.content||'').match(/\\{[^{}]*"role"\\s*:\\s*"(legal|writer|analyst|designer|developer|reviewer)"[^{}]*\\}/);
+    if(match){const parsed=JSON.parse(match[0]);chosen=parsed.role;reason=String(parsed.reason||reason).slice(0,180);}
+   }
+  }catch{}
+  return {role:chosen,label:STAFF.find(s=>s.id===chosen)?.name||chosen,reason};
+ }
  const routeFor=goal=>/กฎหมาย|ที่ดิน|มาตรา|คำพิพากษา|legal|law/i.test(goal)?'legal':/โค้ด|โปรแกรม|เว็บไซต์|บั๊ก|code|software|api/i.test(goal)?'development':/ออกแบบ|ภาพ|อินโฟกราฟิก|ui|ux|design/i.test(goal)?'design':'general';
 
  const [exportNotice,setExportNotice]=useState('');
@@ -121,19 +128,19 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   const sent={id:crypto.randomUUID(),who:'user',text,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
   setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),sent]}));setDraft('');setPending(true);
   try{
-   const delegation=jobMode==='chat'?delegationFor(role,text):null;
+   const delegation=jobMode==='chat'&&role==='manager'&&taskIntent(text)?await planManagerTask(text):null;
    if(delegation){
-    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text})});
+    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text,autoStart:true})});
     const result=await r.json();if(!r.ok)throw Error(result.error||'ส่งงานไม่สำเร็จ');
-    const response={id:crypto.randomUUID(),who:'agent',text:'สร้างงานสำหรับ '+delegation.label+' ในคิวแล้ว (เลขงาน '+result.id.slice(0,8)+') · รอการอนุมัติจากคุณก่อนเริ่มงาน โปรดเปิดส่วนคิวงาน AI เพื่ออนุมัติ',time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    const response={id:crypto.randomUUID(),who:'agent',text:'ผู้จัดการเลือก '+delegation.label+' ('+delegation.reason+') และส่งงานแล้ว (เลขงาน '+result.id.slice(0,8)+') · '+(result.autoStarted?'กำลังประมวลผลทันที':'งานนี้ต้องอนุมัติก่อนเริ่ม'),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else if(jobMode!=='chat'){
     const goal=text.slice(0,1500),route=routeFor(goal);
     const prompt=jobMode==='project'?'PROJECT_V1:'+JSON.stringify({version:1,goal,route}):'WORKFLOW_V2:'+JSON.stringify({version:2,goal,route});
-    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt})});
+    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt,autoStart:true})});
     if(!r.ok)throw Error('ไม่สามารถส่งเข้าคิวงาน');
     const result=await r.json();
-    const response={id:crypto.randomUUID(),who:'agent',text:'รับงานเข้าคิวแล้ว รออนุมัติก่อนเริ่มประมวลผล'+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    const response={id:crypto.randomUUID(),who:'agent',text:(result.autoStarted?'เริ่มประมวลผลงานแล้ว':'รับงานเข้าคิวแล้ว งานนี้ต้องอนุมัติก่อนเริ่ม')+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role,prompt:text,history})});
