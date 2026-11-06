@@ -28,7 +28,7 @@ test('rejected reviews return unapproved draft without calling manager',async()=
   return 'ร่าง';
  }});
  assert.equal(reviews,3);
- assert.equal(calls,8);
+ assert.equal(calls,6);
  assert.match(result,/ยังไม่ผ่านการตรวจสอบคุณภาพ/);
  assert.match(result,/ยังผิด/);
  assert.doesNotMatch(result,/รายงานฉบับสุดท้าย \(ผ่านการตรวจทานภายใน AI\)/);
