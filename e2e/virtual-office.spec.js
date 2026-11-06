@@ -891,7 +891,7 @@ test('Messenger submits multi-agent project into approval queue rather than exec
  await page.getByLabel('รูปแบบคำสั่ง').selectOption('project');
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('วิเคราะห์โครงการทดสอบ');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
- await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('เริ่มประมวลผล');
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('รับงานเข้าคิวแล้ว');
  await expect.poll(()=>submitted?.prompt).toContain('PROJECT_V1:');
  expect(submitted.agentRole).toBe('manager');
  expect(submitted.autoStart).toBe(true);
@@ -912,7 +912,7 @@ test('manager delegates natural-language legal request into actual legal approva
  await expect.poll(()=>created?.agentRole).toBe('legal');
  expect(created.prompt).toContain('ตรวจสอบประเด็นสิทธิในที่ดิน');
  expect(created.autoStart).toBe(true);
- await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('ส่งงานให้');
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('ส่งงานแล้ว');
 });
 test('ordinary manager conversation does not create a delegated job',async({page})=>{
  let posted=0;
@@ -926,4 +926,20 @@ test('ordinary manager conversation does not create a delegated job',async({page
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
  await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('[ผลจำลอง]');
  expect(posted).toBe(0);
+});
+
+test('manager independently selects legal specialist without named department',async({page})=>{
+ let created=null;
+ await page.route('**/api/chat',async route=>await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({content:'{"role":"legal","reason":"ต้องวิเคราะห์กฎหมาย"}'})}));
+ await page.route('**/api/jobs',async route=>{
+  if(route.request().method()==='POST'){created=route.request().postDataJSON();await route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({id:'11111111-1111-4111-8111-111111111111',status:'approved',autoStarted:true})});}
+  else await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobs:[]})});
+ });
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ช่วยตรวจสอบความถูกต้องของสัญญาซื้อขายนี้');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect.poll(()=>created?.agentRole).toBe('legal');
+ expect(created.autoStart).toBe(true);
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('ผู้จัดการเลือก');
 });
