@@ -35,9 +35,11 @@ export async function runWorkflow(prompt,{generate,model,onProgress=async()=>{}}
  const stages=workflowRoles(plan);
  let revisionCount=0;
  let reviewAccepted=false;
+ let reviewLimitReached=false;
+ const maxRevisions=2;
  for(let index=0;index<stages.length;index++){
   const role=stages[index];
-  if(plan.version===2&&role==='manager'&&!reviewAccepted)throw new Error('Workflow quality gate rejected (review_not_passed)');
+  if(plan.version===2&&role==='manager'&&!reviewAccepted)break;
   try{await onProgress({role,stage:index+1,total:stages.length,status:'running'})}catch{throw new Error('Workflow progress failed at '+role+' (bridge_error)')}
   const context=outputs.map(x=>x.role+': '+x.content.slice(0,1100)).join('\n');
   const deliverableInstruction=plan.version!==2?'':role==='legal'?'\nส่งมอบบทวิเคราะห์ข้อกฎหมายทันที ไม่เขียนแผนว่าจะค้นคว้าหรือดำเนินการภายหลัง จัดหัวข้อ: ข้อเท็จจริงที่ทราบ, ประเด็นกฎหมาย, หลักกฎหมายที่ยืนยันได้, การวิเคราะห์, ข้อจำกัด/ข้อมูลที่ต้องตรวจสอบ หากไม่มีแหล่งกฎหมายที่ตรวจสอบได้ให้ระบุชัดว่าไม่ยืนยันมาตราหรือความเป็นปัจจุบัน ห้ามแต่งแหล่งอ้างอิง':role==='writer'?'\nเขียนรายงานฉบับร่างจากบทวิเคราะห์ที่ได้รับ ไม่เขียนขั้นตอนหรือแผนดำเนินการ จัดหัวข้อ: เรื่อง, ข้อเท็จจริง, ข้อกฎหมายและการวิเคราะห์, ข้อสรุป, ข้อควรตรวจสอบเพิ่มเติม ห้ามเพิ่มข้อกฎหมายหรือแหล่งอ้างอิงที่ไม่ได้รับ':role==='reviewer'?'\nตรวจเนื้อหารายงานจริงเทียบกับโจทย์และบทวิเคราะห์ หากเป็นเพียงแผนงาน ไม่มีข้อวิเคราะห์ ขาดข้อจำกัด หรืออ้างมาตราโดยไร้หลักฐาน ให้ VERDICT: REVISE ระบุข้อแก้ไขที่ปฏิบัติได้ ห้ามให้ PASS กับแผนงาน':role==='manager'?'\nส่งเฉพาะรายงานฉบับสุดท้ายที่ตรวจทานแล้ว ไม่เขียนแผนการดำเนินงาน ไม่อ้างว่าได้ตรวจแหล่งข้อมูลภายนอก และคงข้อจำกัดของข้อมูล':'';
@@ -56,7 +58,7 @@ export async function runWorkflow(prompt,{generate,model,onProgress=async()=>{}}
   if(plan.version===2&&role==='reviewer'){
    const draft=outputs.filter(x=>x.role===stages[index-1]).at(-1)?.content||'';
    if(reviewVerdict(content)==='PASS'&&!looksLikePlanningOnly(draft)){reviewAccepted=true;continue}
-   if(revisionCount>=1)throw new Error('Workflow quality gate rejected (revision_limit)');
+   if(revisionCount>=maxRevisions){reviewLimitReached=true;break;}
    revisionCount++;
    const reviseRole=stages[index-1];
    const notes=content.slice(0,1100);
@@ -73,8 +75,15 @@ export async function runWorkflow(prompt,{generate,model,onProgress=async()=>{}}
  }
 
  if(plan.version===2){
+  const history=outputs.map((x,i)=>'['+(i+1)+'/'+outputs.length+'] '+x.role+'\\n'+x.content).join('\\n\\n');
+  if(!reviewAccepted){
+   const draft=outputs.filter(x=>x.role==='writer').at(-1)?.content||'ไม่มีร่างรายงาน';
+   const legal=outputs.filter(x=>x.role==='legal').at(-1)?.content||'ไม่มีบทวิเคราะห์';
+   const review=outputs.filter(x=>x.role==='reviewer').at(-1)?.content||'ยังไม่ได้รับผลตรวจทาน';
+   return ('รายงานฉบับร่าง — ยังไม่ผ่านการตรวจสอบคุณภาพ\\nสถานะ: '+(reviewLimitReached?'ตรวจทานไม่ผ่านหลังแก้ไข '+maxRevisions+' รอบ':'ยังไม่ได้รับการอนุมัติ')+'\\n\\nร่างรายงานล่าสุด\\n'+draft+'\\n\\nบทวิเคราะห์กฎหมาย\\n'+legal+'\\n\\nข้อสังเกตของผู้ตรวจสอบคุณภาพ\\n'+review+'\\n\\n---\\nบันทึกการทำงานแต่ละขั้นตอน\\n'+history).slice(0,19000);
+  }
   const final=outputs.filter(x=>x.role==='manager').at(-1)?.content||'';
-  return ('รายงานฉบับสุดท้าย (ผ่านการตรวจทานภายใน AI)\\n'+final+'\\n\\n---\\nบันทึกการทำงานแต่ละขั้นตอน\\n'+outputs.map((x,i)=>'['+(i+1)+'/'+outputs.length+'] '+x.role+'\\n'+x.content).join('\\n\\n')).slice(0,19000);
+  return ('รายงานฉบับสุดท้าย (ผ่านการตรวจทานภายใน AI)\\n'+final+'\\n\\n---\\nบันทึกการทำงานแต่ละขั้นตอน\\n'+history).slice(0,19000);
  }
 
  return outputs.map((x,i)=>'['+(i+1)+'/'+outputs.length+'] '+x.role+'\n'+x.content).join('\n\n').slice(0,19000);
