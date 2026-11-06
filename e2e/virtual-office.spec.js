@@ -895,3 +895,33 @@ test('Messenger submits multi-agent project into approval queue rather than exec
  await expect.poll(()=>submitted?.prompt).toContain('PROJECT_V1:');
  expect(submitted.agentRole).toBe('manager');
 });
+
+test('manager delegates natural-language legal request into actual legal approval queue',async({page})=>{
+ let created=null;
+ await page.route('**/api/jobs',async route=>{
+  if(route.request().method()==='POST'){
+   created=route.request().postDataJSON();
+   await route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({id:'11111111-1111-4111-8111-111111111111',status:'awaiting_approval'})});
+  }else await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobs:[]})});
+ });
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ส่งงานให้ฝ่ายกฎหมาย ตรวจสอบประเด็นสิทธิในที่ดิน');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect.poll(()=>created?.agentRole).toBe('legal');
+ expect(created.prompt).toContain('ตรวจสอบประเด็นสิทธิในที่ดิน');
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('รอการอนุมัติ');
+});
+test('ordinary manager conversation does not create a delegated job',async({page})=>{
+ let posted=0;
+ await page.route('**/api/jobs',async route=>{
+  if(route.request().method()==='POST')posted++;
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobs:[]})});
+ });
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ฝ่ายกฎหมายทำหน้าที่อะไร');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('[ผลจำลอง]');
+ expect(posted).toBe(0);
+});
