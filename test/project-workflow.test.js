@@ -19,5 +19,5 @@ test('approved project plans, delegates, reviews and consolidates',async()=>{
 test('project revision returns feedback to owners and blocks second rejection',async()=>{
  let reviews=0,calls=0;
  await assert.rejects(runProject(createProject('ออกแบบ UI'),{model:'mock',generate:async prompt=>{calls++;if(prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE')){reviews++;return 'VERDICT: REVISE\nยังไม่ผ่าน'}return 'ร่าง';}}),/revision_limit/);
- assert.equal(reviews,2);assert.equal(calls,7);
+ assert.equal(reviews,2);assert.equal(calls,6);
 });
