@@ -91,6 +91,13 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
   if(/สวัสดี|แนะนำตัว|คุณเป็นใคร|ทำอะไรได้บ้าง|ช่วยอะไรได้บ้าง|ทำหน้าที่อะไร|คืออะไร|หมายถึงอะไร|ขอบคุณ|ทักทาย/i.test(value))return false;
   return /มอบหมาย|ส่งงาน|ให้ฝ่าย|จัดทำ(?:รายงาน|เอกสาร|หนังสือ|สไลด์)|ตรวจสอบ(?:ความถูกต้อง|เอกสาร|ข้อมูล|ข้อกฎหมาย|งาน|สัญญา)|วิเคราะห์(?:ข้อมูล|สถิติ|กฎหมาย)|ร่าง(?:หนังสือ|เอกสาร)|ออกแบบ(?:ภาพ|อินโฟกราฟิก|หน้าจอ)|พัฒนา(?:ระบบ|เว็บไซต์|โปรแกรม)|แก้ไข(?:บั๊ก|โค้ด|ระบบ)|สร้าง(?:ภาพ|ไฟล์|โปรแกรม)|วางแผน(?:โครงการ|งาน)|ประเมิน(?:ความเสี่ยง|โครงการ)/.test(value);
  };
+ const isMultiAgentRequest=message=>{
+  const value=message.trim();
+  const legalResearch=/(?:นักวิจัยกฎหมาย|ฝ่ายกฎหมาย|ทีมกฎหมาย|วิจัยกฎหมาย|ตรวจสอบประเด็นข้อกฎหมาย)/i.test(value);
+  const review=/(?:ผู้ตรวจสอบคุณภาพ|ฝ่ายตรวจสอบคุณภาพ|ตรวจทาน|ตรวจสอบคุณภาพ|ทบทวนผล)/i.test(value);
+  const explicitHandoff=/(?:แล้ว|จากนั้น|ก่อน|ต่อด้วย|ส่งต่อ|และให้|เพื่อให้)/i.test(value);
+  return legalResearch&&review&&explicitHandoff;
+ };
  const fallbackRole=message=>/กฎหมาย|ที่ดิน|มาตรา|คำพิพากษา|สัญญา|legal/i.test(message)?'legal':/โค้ด|โปรแกรม|เว็บไซต์|บั๊ก|API|ซอฟต์แวร์/i.test(message)?'developer':/ออกแบบ|ภาพ|อินโฟกราฟิก|สไลด์/i.test(message)?'designer':/ข้อมูล|สถิติ|ตัวเลข|วิเคราะห์/i.test(message)?'analyst':/เอกสาร|หนังสือ|รายงาน|ร่าง/i.test(message)?'writer':'reviewer';
  async function planManagerTask(message){
   const instruction='คุณเป็นผู้จัดการสำนักงาน AI จงเลือกฝ่ายที่เหมาะสมที่สุดสำหรับงานที่ผู้ใช้สั่ง โดยเลือกจาก legal,writer,analyst,designer,developer,reviewer เท่านั้น ตอบ JSON เพียงอย่างเดียวรูปแบบ {"role":"legal","reason":"เหตุผลสั้น"} ห้ามตอบอย่างอื่น งาน: '+message;
@@ -178,21 +185,22 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
     const response={id:crypto.randomUUID(),who:'agent',text:managerIntroductionReply,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));return;
    }
-   const delegation=jobMode==='chat'&&role==='manager'&&taskIntent(text)?await planManagerTask(text):null;
+   const multiAgent=role==='manager'&&isMultiAgentRequest(text);
+   const delegation=jobMode==='chat'&&role==='manager'&&!multiAgent&&taskIntent(text)?await planManagerTask(text):null;
    if(delegation){
     const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text,autoStart:true})});
     const result=await r.json();if(!r.ok)throw Error(result.error||'ส่งงานไม่สำเร็จ');
     trackedJobs.current.set(result.id,{chatRole:role,label:delegation.label});
     const response={id:crypto.randomUUID(),who:'agent',text:'ผู้จัดการเลือก '+delegation.label+' ('+delegation.reason+') และส่งงานแล้ว (เลขงาน '+result.id.slice(0,8)+') · '+(result.autoStarted?'กำลังประมวลผลทันที':'งานนี้ต้องอนุมัติก่อนเริ่ม'),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
-   }else if(jobMode!=='chat'){
-    const goal=text.slice(0,1500),route=routeFor(goal);
-    const prompt=jobMode==='project'?'PROJECT_V1:'+JSON.stringify({version:1,goal,route}):'WORKFLOW_V2:'+JSON.stringify({version:2,goal,route});
+   }else if(jobMode!=='chat'||multiAgent){
+    const goal=text.slice(0,1500),route=multiAgent?'legal':routeFor(goal);
+    const prompt=jobMode==='project'&&!multiAgent?'PROJECT_V1:'+JSON.stringify({version:1,goal,route}):'WORKFLOW_V2:'+JSON.stringify({version:2,goal,route});
     const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt,autoStart:true})});
     if(!r.ok)throw Error('ไม่สามารถส่งเข้าคิวงาน');
     const result=await r.json();
-    trackedJobs.current.set(result.id,{chatRole:role,label:'ทีมงาน AI'});
-    const response={id:crypto.randomUUID(),who:'agent',text:(result.autoStarted?'เริ่มประมวลผลงานแล้ว':'รับงานเข้าคิวแล้ว งานนี้ต้องอนุมัติก่อนเริ่ม')+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    trackedJobs.current.set(result.id,{chatRole:role,label:multiAgent?'นักวิจัยกฎหมาย → ผู้จัดทำรายงาน → ผู้ตรวจสอบคุณภาพ → ผู้จัดการ':'ทีมงาน AI'});
+    const response={id:crypto.randomUUID(),who:'agent',text:(multiAgent?'สร้างงานต่อเนื่อง: นักวิจัยกฎหมาย → ผู้จัดทำรายงาน → ผู้ตรวจสอบคุณภาพ → ผู้จัดการ · ':'')+(result.autoStarted?'เริ่มประมวลผลงานแล้ว':'รับงานเข้าคิวแล้ว งานนี้ต้องอนุมัติก่อนเริ่ม')+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role,prompt:text,history,providerId})});
