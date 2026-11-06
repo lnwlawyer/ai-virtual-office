@@ -888,6 +888,7 @@ test('Messenger submits multi-agent project into approval queue rather than exec
  });
  await page.goto('/');
  await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByText('ตัวเลือกคำสั่ง · สนทนา').click();
  await page.getByLabel('รูปแบบคำสั่ง').selectOption('project');
  await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('วิเคราะห์โครงการทดสอบ');
  await page.getByRole('button',{name:'ส่งข้อความ'}).click();
