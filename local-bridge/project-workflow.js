@@ -32,7 +32,7 @@ export async function runProject(prompt,{generate,model,onProgress=async()=>{}})
   const output=await ask(generate,model,role,'เป้าหมายโครงการ: '+project.goal+'\nแผนผู้จัดการ (ข้อมูลอ้างอิง): '+plan.slice(0,1100)+'\nรับผิดชอบงานย่อยลำดับ '+(i+1)+' จากสองงาน แสดงผลลัพธ์พร้อมข้อจำกัดและสิ่งที่ต้องตรวจสอบ');
   tasks.push({role,output});await report(role,i+2,'completed');
  }
- const draft=tasks.map((t,i)=>'งานย่อย '+(i+1)+' ('+t.role+'):\n'+t.output.slice(0,1500)).join('\n\n');
+ let draft=tasks.map((t,i)=>'งานย่อย '+(i+1)+' ('+t.role+'):\n'+t.output.slice(0,1500)).join('\n\n');
  let review='',accepted=false;
  for(let attempt=0;attempt<2;attempt++){
   await report('reviewer',4,'running');
@@ -48,7 +48,7 @@ export async function runProject(prompt,{generate,model,onProgress=async()=>{}})
   }
   // Update draft for second review.
   const updated=tasks.map((t,i)=>'งานย่อย '+(i+1)+' ('+t.role+'):\n'+t.output.slice(0,1500)).join('\n\n');
-  draftText=updated;
+  draft=updated;
  }
  if(!accepted)throw Error('Project quality gate rejected (revision_limit)');
  await report('manager',4,'running');
