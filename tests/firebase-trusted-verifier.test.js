@@ -44,6 +44,9 @@ test('end-to-end trusted certificate verifies a signed Firebase ID token',async(
   return {ok:true,headers:new Headers({'cache-control':'max-age=30'}),json:async()=>({'test-key':pem})};
  }});
  assert.deepEqual(await verifier(token),{uid:'user-123',issuedAt:now-60,expiresAt:now+3600});
- assert.equal(await verifier(token.slice(0,-2)+'xx'),null);
+ const signatureBytes=Buffer.from(token.split('.')[2],'base64url');
+ signatureBytes[0]^=1;
+ const tampered=signed+'.'+signatureBytes.toString('base64url');
+ assert.equal(await verifier(tampered),null);
  assert.equal(fetches,1);
 });
