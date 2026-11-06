@@ -76,3 +76,6 @@ export async function runWorkflow(prompt,{generate,model,onProgress=async()=>{}}
   const final=outputs.filter(x=>x.role==='manager').at(-1)?.content||'';
   return ('รายงานฉบับสุดท้าย (ผ่านการตรวจทานภายใน AI)\\n'+final+'\\n\\n---\\nบันทึกการทำงานแต่ละขั้นตอน\\n'+outputs.map((x,i)=>'['+(i+1)+'/'+outputs.length+'] '+x.role+'\\n'+x.content).join('\\n\\n')).slice(0,19000);
  }
+
+ return outputs.map((x,i)=>'['+(i+1)+'/'+outputs.length+'] '+x.role+'\n'+x.content).join('\n\n').slice(0,19000);
+}
