@@ -1,5 +1,5 @@
 Option Explicit
-Dim shell, fso, root, command, code, desktop, startup, link, answer
+Dim shell, fso, root, command, code, desktop, startup, link, answer, logPath, cmdPath, script, installCommand
 Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 root = fso.GetParentFolderName(fso.GetParentFolderName(WScript.ScriptFullName))
@@ -12,9 +12,36 @@ If code <> 0 Then
   MsgBox "Install Node.js LTS first, then double-click this setup file again.", 48, "AI Virtual Office"
   WScript.Quit 1
 End If
-code = shell.Run("cmd.exe /d /s /c ""cd /d """ & root & """ && npm.cmd ci && npm.cmd run build:local""", 0, True)
+logPath = fso.BuildPath(root, "ai-office-setup.log")
+cmdPath = fso.BuildPath(root, "ai-office-setup.cmd")
+If fso.FileExists(fso.BuildPath(root, "package-lock.json")) Then
+  installCommand = "npm.cmd ci --no-audit --no-fund"
+Else
+  installCommand = "npm.cmd install --no-audit --no-fund"
+End If
+Set script = fso.CreateTextFile(cmdPath, True, False)
+script.WriteLine "@echo off"
+script.WriteLine "cd /d """ & root & """"
+script.WriteLine "echo Installing AI Virtual Office..."
+script.WriteLine installCommand & " > """ & logPath & """ 2>&1"
+script.WriteLine "if errorlevel 1 exit /b 10"
+script.WriteLine "npm.cmd run build:local >> """ & logPath & """ 2>&1"
+script.WriteLine "if errorlevel 1 exit /b 20"
+script.WriteLine "exit /b 0"
+script.Close
+code = shell.Run("cmd.exe /d /c """ & cmdPath & """", 0, True)
+On Error Resume Next
+fso.DeleteFile cmdPath, True
+On Error GoTo 0
 If code <> 0 Then
-  MsgBox "Installation failed. Verify internet connection and npm dependencies.", 16, "AI Virtual Office"
+  If code = 10 Then
+    MsgBox "Dependency installation failed. See ai-office-setup.log in the project folder.", 16, "AI Virtual Office"
+  ElseIf code = 20 Then
+    MsgBox "Web build failed. See ai-office-setup.log in the project folder.", 16, "AI Virtual Office"
+  Else
+    MsgBox "Setup failed (code " & code & "). See ai-office-setup.log in the project folder.", 16, "AI Virtual Office"
+  End If
+  shell.Run "notepad.exe """ & logPath & """", 1, False
   WScript.Quit 1
 End If
 desktop = shell.SpecialFolders("Desktop")
