@@ -18,7 +18,7 @@ If Not ready Then
     MsgBox "AI Virtual Office is not installed. Double-click Setup-AI-Virtual-Office.vbs first.", 48, "AI Virtual Office"
     WScript.Quit 1
   End If
-  cmd = "cmd.exe /d /s /c ""cd /d """ & root & """ && npm.cmd run chat:local"""
+  cmd = "cmd.exe /d /s /c ""cd /d """ & root & """ && node """ & fso.BuildPath(root, "local-bridge\chat-server.js") & """"
   shell.Run cmd, 0, False
   For i = 1 To 90
     WScript.Sleep 1000
