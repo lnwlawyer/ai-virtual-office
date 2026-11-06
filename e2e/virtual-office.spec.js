@@ -792,7 +792,7 @@ test('Messenger batch composer supports prompt append and roster reset',async({p
  await page.getByRole('button',{name:'รีเซ็ตตัวกรองพนักงาน'}).click();
  await expect(rosterSearch).toHaveValue('');
  await expect(page.getByText('แสดง 7 จาก 7 คน')).toBeVisible();
- await draft.fill('ก'.repeat(7500));
+ await draft.fill('ก'.repeat(3900));
  await expect(page.getByRole('status').filter({hasText:'ใกล้ครบขีดจำกัด'})).toBeVisible();
 });
 
@@ -877,7 +877,7 @@ test('single command center hides duplicate command menus and keeps task overvie
   await expect(nav.getByRole('button',{name:old,exact:true})).toHaveCount(0);
  }
  await nav.getByRole('button',{name:/งานและโครงการ|Tasks & Projects/}).click();
- await expect(page.getByRole('heading',{name:'งานและโครงการ'})).toBeVisible();
+ await expect(page.locator('section.panel').getByRole('heading',{name:'งานและโครงการ'})).toBeVisible();
  await expect(page.getByRole('textbox',{name:'Task title'})).toHaveCount(0);
 });
 test('Messenger submits multi-agent project into approval queue rather than executing directly',async({page})=>{
