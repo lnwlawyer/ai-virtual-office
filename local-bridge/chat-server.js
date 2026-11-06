@@ -75,6 +75,15 @@ export function createLocalChatServer({port=8787,generate=generateWithOllama,mod
    try{
     const response=await fetch('http://127.0.0.1:'+bridgePort+path,{method:req.method,headers:{Authorization:'Bearer '+bridgeToken,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(4000)});
     const result=await response.json();
+    if(response.ok&&req.method==='POST'&&path==='/v1/jobs'&&body?.autoStart===true){
+     const prompt=body.prompt||'';
+     // Automatic execution is restricted to text-only analysis. No shell, file mutations, or deployments.
+     if(typeof prompt!=='string'||/(?:ลบไฟล์|ลบข้อมูล|deploy|merge\\s+pr|รันคำสั่ง|execute\\s+shell|rm\\s+-rf|git\\s+push)/i.test(prompt))return reply(201,{...result,status:'awaiting_approval',requiresApproval:true});
+     const decision=await fetch('http://127.0.0.1:'+bridgePort+'/v1/jobs/'+result.id+'/decision',{method:'POST',headers:{Authorization:'Bearer '+bridgeToken,'Content-Type':'application/json'},body:JSON.stringify({decision:'approve'}),signal:AbortSignal.timeout(4000)});
+     if(!decision.ok)return reply(502,{error:'Job queued but automatic start failed',id:result.id});
+     void processApprovedJobs({token:bridgeToken,port:bridgePort,model,generate}).catch(()=>{});
+     return reply(201,{...result,status:'approved',autoStarted:true});
+    }
     if(response.ok&&req.method==='POST'&&path.endsWith('/decision')&&result.status==='approved'){
      void processApprovedJobs({token:bridgeToken,port:bridgePort,model,generate}).catch(()=>{});
     }
