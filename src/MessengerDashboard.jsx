@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect,useRef} from 'react';
 import {STAFF} from './virtual-office-model.js';
 
 import './messenger-dashboard.css';
@@ -40,8 +40,36 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
  const [jobError,setJobError]=useState('');
  const [jobMode,setJobMode]=useState('chat');
  const [jobDetail,setJobDetail]=useState(null);
- async function refreshJobs(){if(!local)return;try{const r=await fetch('/api/jobs');if(!r.ok)throw Error('ไม่สามารถอ่านคิวงาน');const data=await r.json();setJobs(Array.isArray(data)?data:Array.isArray(data.jobs)?data.jobs:[]);setJobError('')}catch{setJobError('ไม่สามารถเชื่อมต่อคิวงานในเครื่อง')}}
- useEffect(()=>{if(!local)return;refreshJobs();const id=setInterval(refreshJobs,5000);return()=>clearInterval(id)},[local]);
+ const trackedJobs=useRef(new Map());
+ const reportedJobs=useRef(new Set());
+ const polling=useRef(false);
+ async function refreshJobs(){
+  if(!local||polling.current)return;
+  polling.current=true;
+  try{
+   const r=await fetch('/api/jobs');if(!r.ok)throw Error('ไม่สามารถอ่านคิวงาน');
+   const data=await r.json();
+   const list=Array.isArray(data)?data:Array.isArray(data.jobs)?data.jobs:[];
+   setJobs(list);setJobError('');
+   for(const job of list){
+    const tracked=trackedJobs.current.get(job.id);
+    if(!tracked||reportedJobs.current.has(job.id)||!['completed','failed','rejected'].includes(job.status))continue;
+    const detailResponse=await fetch('/api/jobs/'+encodeURIComponent(job.id));
+    if(!detailResponse.ok)continue;
+    const detail=await detailResponse.json();
+    if(!['completed','failed','rejected'].includes(detail.status))continue;
+    reportedJobs.current.add(job.id);
+    trackedJobs.current.delete(job.id);
+    const resultText=typeof detail.content==='string'?detail.content.trim():'';
+    const title=detail.status==='completed'?'งานเสร็จแล้ว':detail.status==='failed'?'งานไม่สำเร็จ':'งานถูกปฏิเสธ';
+    const report='รายงานจากผู้จัดการ · '+title+' · '+tracked.label+' · เลขงาน '+job.id.slice(0,8)+'\\n'+(resultText||'ไม่มีรายละเอียดผลการทำงาน');
+    const message={id:crypto.randomUUID(),who:'agent',text:report,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
+    setMessages(prev=>({...prev,[tracked.chatRole]:[...(prev[tracked.chatRole]||[]),message]}));
+   }
+  }catch{setJobError('ไม่สามารถเชื่อมต่อคิวงานในเครื่อง')}
+  finally{polling.current=false}
+ }
+ useEffect(()=>{if(!local)return;refreshJobs();const id=setInterval(refreshJobs,2000);return()=>clearInterval(id)},[local]);
  async function decide(job,decision){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id)+'/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({decision})});if(!r.ok)throw Error();await refreshJobs()}catch{setJobError('ไม่สามารถดำเนินการอนุมัติได้')}}
  async function viewJob(job){try{const r=await fetch('/api/jobs/'+encodeURIComponent(job.id));if(!r.ok)throw Error();setJobDetail(await r.json())}catch{setJobError('ไม่สามารถอ่านผลการทำงานได้')}}
  const taskIntent=message=>/(?:ช่วย|ทำ|จัดทำ|ตรวจสอบ|วิเคราะห์|สรุป|ร่าง|ออกแบบ|พัฒนา|แก้ไข|สร้าง|มอบหมาย|ส่งงาน|ให้ฝ่าย|วางแผน|ประเมิน)/.test(message)&&!/(?:คืออะไร|ทำหน้าที่อะไร|หมายถึงอะไร)/.test(message);
@@ -132,6 +160,7 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
    if(delegation){
     const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:delegation.role,prompt:text,autoStart:true})});
     const result=await r.json();if(!r.ok)throw Error(result.error||'ส่งงานไม่สำเร็จ');
+    trackedJobs.current.set(result.id,{chatRole:role,label:delegation.label});
     const response={id:crypto.randomUUID(),who:'agent',text:'ผู้จัดการเลือก '+delegation.label+' ('+delegation.reason+') และส่งงานแล้ว (เลขงาน '+result.id.slice(0,8)+') · '+(result.autoStarted?'กำลังประมวลผลทันที':'งานนี้ต้องอนุมัติก่อนเริ่ม'),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else if(jobMode!=='chat'){
@@ -140,6 +169,7 @@ export default function MessengerDashboard({tasks=[],onCreateTaskDraft,onUpdateT
     const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,agentRole:'manager',prompt,autoStart:true})});
     if(!r.ok)throw Error('ไม่สามารถส่งเข้าคิวงาน');
     const result=await r.json();
+    trackedJobs.current.set(result.id,{chatRole:role,label:'ทีมงาน AI'});
     const response={id:crypto.randomUUID(),who:'agent',text:(result.autoStarted?'เริ่มประมวลผลงานแล้ว':'รับงานเข้าคิวแล้ว งานนี้ต้องอนุมัติก่อนเริ่ม')+(result.id?' · '+result.id.slice(0,8):''),time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})};
     setMessages(prev=>({...prev,[role]:[...(prev[role]||[]),response]}));await refreshJobs();
    }else{

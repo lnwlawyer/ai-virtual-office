@@ -943,3 +943,21 @@ test('manager independently selects legal specialist without named department',a
  expect(created.autoStart).toBe(true);
  await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('ผู้จัดการเลือก');
 });
+
+test('manager automatically receives delegated job result in original chat exactly once',async({page})=>{
+ let created=false;
+ await page.route('**/api/chat',async route=>await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({content:'{"role":"legal","reason":"ข้อกฎหมาย"}'})}));
+ await page.route('**/api/jobs',async route=>{
+  if(route.request().method()==='POST'){created=true;await route.fulfill({status:201,contentType:'application/json',body:JSON.stringify({id:'11111111-1111-4111-8111-111111111111',status:'approved',autoStarted:true})});}
+  else await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobs:created?[{id:'11111111-1111-4111-8111-111111111111',status:'completed',agentRole:'legal'}]:[]})});
+ });
+ await page.route('**/api/jobs/11111111-1111-4111-8111-111111111111',async route=>await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({id:'11111111-1111-4111-8111-111111111111',status:'completed',content:'ผลการวิเคราะห์กฎหมายจากฝ่ายกฎหมาย'})}));
+ await page.goto('/');
+ await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('button',{name:'แชทพนักงาน AI'}).click();
+ await page.getByRole('textbox',{name:/ข้อความถึง ผู้จัดการสำนักงาน/}).fill('ช่วยตรวจสอบข้อกฎหมายเกี่ยวกับสัญญานี้');
+ await page.getByRole('button',{name:'ส่งข้อความ'}).click();
+ await expect(page.getByRole('log',{name:/บทสนทนากับ ผู้จัดการสำนักงาน/})).toContainText('ผลการวิเคราะห์กฎหมายจากฝ่ายกฎหมาย',{timeout:12000});
+ await page.waitForTimeout(2500);
+ const report=page.getByText(/รายงานจากผู้จัดการ · งานเสร็จแล้ว/);
+ await expect(report).toHaveCount(1);
+});
