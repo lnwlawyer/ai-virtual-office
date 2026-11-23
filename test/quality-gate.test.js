@@ -25,7 +25,7 @@ test('rejected reviews return unapproved draft without calling manager',async()=
  let reviews=0;
  const result=await runWorkflow(createWorkflowV2('แก้บั๊กเว็บไซต์'),{model:'mock',generate:async prompt=>{
   calls++;
-  if(prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE')){reviews++;return 'VERDICT: REVISE\\nยังผิด';}
+  if(prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE')){reviews++;return 'VERDICT: REVISE\nยังผิด';}
   return 'ร่าง';
  }});
  assert.equal(reviews,3);
@@ -44,11 +44,11 @@ test('legal workflow halts on missing evidence without futile revisions or manag
  const calls=[];
  const result=await runWorkflow(createWorkflowV2('ตรวจสอบกฎหมายที่ดิน'),{model:'mock',generate:async prompt=>{
   calls.push(prompt);
-  if(prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE'))return 'VERDICT: INSUFFICIENT_EVIDENCE\\nไม่มีเอกสารกฎหมายต้นทางที่ตรวจสอบได้';
+  if(prompt.includes('VERDICT: PASS หรือ VERDICT: REVISE'))return 'VERDICT: INSUFFICIENT_EVIDENCE\nไม่มีเอกสารกฎหมายต้นทางที่ตรวจสอบได้';
   return 'ข้อเท็จจริงและข้อกฎหมายที่ยังไม่ยืนยัน';
  }});
  assert.equal(calls.length,3);
  assert.match(result,/ข้อมูลหลักฐานไม่เพียงพอ/);
  assert.match(result,/ไม่มีเอกสารกฎหมายต้นทาง/);
- assert.doesNotMatch(result,/รายงานฉบับสุดท้าย \\(ผ่านการตรวจทานภายใน AI\\)/);
+ assert.doesNotMatch(result,/รายงานฉบับสุดท้าย \(ผ่านการตรวจทานภายใน AI\)/);
 });
